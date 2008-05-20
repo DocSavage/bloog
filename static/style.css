@@ -114,7 +114,7 @@ ul#imgLinks{list-style:none;margin:7px 0;}
 #more_reading a img { border: none; margin:0 0 3px 2px; }
 
 /* tags */
-p.tags a {font-weight:normal; margin: 0 0.8em; white-space:pre; color: #777777; background: transparent url(images/dot.gif) repeat-x scroll left bottom;}
+p.tags a {font-weight:normal; margin: 0 0.8em; color: #777777; background: transparent url(images/dot.gif) repeat-x scroll left bottom;}
 
 /* style me some comments and inputs */
 #comments{width:435px;padding:12px 0 0 0;}

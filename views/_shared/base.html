@@ -92,9 +92,10 @@
                     {% block tags %}
                     <div class="middle_links">
                         <h3>Categories</h3>
-                        <p class="tags">{% for tag in tags %}
-                              <a href="/tag/{{ tag|urlencode }}">{{ tag }}</a>
-                           {% endfor %}
+                        <p class="tags">
+                            {% for tag in tags %}
+                            <a href="/tag/{{ tag|urlencode }}">{{ tag }}</a>
+                            {% endfor %}
                         </p>
                     </div>
                     {% endblock %}
