@@ -202,9 +202,9 @@ class PageHandler(restful.Controller):
             for comment in article.comment_set:
                 comments.append(comment)
 
-        page = view.ViewPage()
-        page.render(self, {"title": article.title, "article": article, "comments": comments})
-        return
+            page = view.ViewPage()
+            page.render(self, {"title": article.title, "article": article, "comments": comments})
+
         # This didn't fall into any of our pages or aliases.
         # Page not found.
         self.redirect('/404.html')
