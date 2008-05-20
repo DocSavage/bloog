@@ -113,8 +113,6 @@ class ViewPage(object):
         }
         template_params.update(config.page or config.default_page)
         template_params.update(more_params)
-        categories = [(tag, re.sub(' ', '&nbsp;', tag)) for tag in template_params['tags']]
-        template_params.update({'categories': categories})
         return template.render(template_file, template_params, debug=config.DEBUG)
 
     # TODO: Should use a decorate on methods to determine which ones get cached, or perhaps let this happen at lower level
