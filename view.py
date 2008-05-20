@@ -42,9 +42,6 @@ VIEW_CACHE = {}
 # Recording of non-cached views per url
 NUM_FULL_RENDERS = {}
 
-# Cache non-breaking spaced version of tags
-TAGS_NONBREAKING = [re.sub('\s', '&nbsp;', tag) for tag in config.page.tags]
-
 def invalidate_cache():
     global VIEW_CACHE, NUM_FULL_RENDERS
     VIEW_CACHE = {}
@@ -112,11 +109,12 @@ class ViewPage(object):
             "user_is_admin": users.is_current_user_admin(),
             "login_url": users.create_login_url(handler.request.uri),
             "logout_url": users.create_logout_url(handler.request.uri),
-            "blog": config.blog or config.default_blog,
-            "tags": TAGS_NONBREAKING
+            "blog": config.blog or config.default_blog
         }
         template_params.update(config.page or config.default_page)
         template_params.update(more_params)
+        categories = [(tag, re.sub(' ', '&nbsp;', tag)) for tag in template_params['tags']]
+        template_params.update({'categories': categories})
         return template.render(template_file, template_params, debug=config.DEBUG)
 
     # TODO: Should use a decorate on methods to determine which ones get cached, or perhaps let this happen at lower level
