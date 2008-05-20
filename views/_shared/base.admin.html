@@ -1,0 +1,44 @@
+{% extends "../_shared/base.html" %}
+
+{% block first_column %}
+    <div id="mainCol" class="fix"><a name="main"></a>
+    {% for article in articles %}
+        {% include '../_shared/article_excerpt.html' %}
+    {% endfor %}
+    {% if not articles %}
+        <div class="post">
+            <div class="postMeta">
+                <span class="date">No articles</span>
+            </div>
+            <h2>Welcome to Bloog</h2>
+            <div class="entry">
+                <p>
+                    You are logged in as administrator, {{ user.nickname }}.
+                </p>
+                <p>
+                    This is the default page for Bloog, a simple RESTful tool for making a blog/homepage on Google App Engine.
+                </p>
+            </div>
+        </div>
+    {% endif %}
+        <div id="more_reading">
+            <p>Stay tuned...</p>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_panel %}
+    <!-- Administrative Console -->
+    <div class="middle_links">
+        <h3>Administrative Panel</h3>
+        <ul>
+            <li><a href="#">New Article</a>
+                - Post a new article (undated)</li>
+            <li><a href="#">New Blog Entry</a>
+                - Post a new blog entry (dated)</li>
+            <li><a href="/admin/timings">Timings</a>
+                - Review time spent on requested urls</li>
+        </ul>
+    </div>
+{% endblock %}
+

@@ -1,0 +1,249 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="{{ blog.html_type }}; charset={{ blog.charset }}" />
+        <title> {{ title }}</title>
+        <meta name="generator" content="Bloogle {{ bloogle_version }}" />
+        <link rel="stylesheet" href="/static/style.css" type="text/css" media="screen" />
+        <link rel="alternate" type="application/rss+xml" title="{{ blog.title }} RSS Feed" href="{{ blog.root_url }}{{ blog.master_atom_url }}" />
+        {% block head %}
+        {% endblock %}
+    </head>
+    <body>
+        <div id="wrapper">
+            <a name="top"></a>
+            <div id="masthead" class="fix">
+                <h1><a href="/">{{ blog.title }}</a></h1>
+                <div id="authorBlurb">
+                    <img src="/static/images/avatar.png" alt="Avatar" />
+                    <p id="authorIntro">
+                        {{ blog.description }}
+                    </p>
+                </div>
+            </div>
+            <ul class="nav fix">
+                <li>
+                    <a href="/" title="Return to the the frontpage">Home
+                        <br/>
+                        <span>Frontpage</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="javascript:;" onmousedown="toggleDiv('archives');" title="View the archives">Archives
+                        <br/>
+                        <span>Browse freely</span>
+                    </a>
+                </li>
+                {% for link in navlinks %}
+                <li>
+                    <a href="{{ link.url }}" title="{{ link.description }}">{{ link.title }}
+                        <br/>
+                        <span>{{ link.description }}</span>
+                    </a>
+                </li>
+                {% endfor %}
+                <li>
+                    <a href="{{ blog.master_atom_url }}" title="Subscribe to the main Atom feed">Atom
+                        <br/>
+                        <span>Syndication</span>
+                    </a>
+                </li>
+                <li class="skip">
+                    <a href="#main" title="Skip to content">Main
+                        <br/>
+                        <span>Skip to content</span>
+                    </a>
+                </li>
+            </ul>
+            <div id="archives" class="fix" style="display: none;">
+                <ul class="fix">
+                    List sorted wp_list_cats
+                </ul>
+            </div>
+
+            <div id="mid" class="fix">
+                <!-- First column: Main content -->
+                {% block first_column %}
+                <div id="mainCol" class="fix"><a name="main"></a>
+                {% for article in articles %}
+                    {% include '../_shared/article_excerpt.html' %}
+                {% endfor %}
+                {% if not articles %}
+                    {% include '../_shared/bloog_intro.html' %}
+                {% endif %}
+                    <div id="more_reading">
+                        <p>Stay tuned...</p>
+                    </div>
+                </div>
+                {% endblock %}
+
+                <!-- Second column: Show search, selected internal links, etc. -->
+                {% block second_column %}
+                <div id="midCol">
+                    {% block search %}
+                    <div id="searchWrap">
+                        <form method="get" id="searchForm" action="/search">
+                            <input type="text" value="{{ searchterm }}" name="s" id="s" />
+                            <input id="searchsubmit" type="image" src="/static/images/btn_search.gif" alt="Search" />
+                        </form>
+                    </div>
+                    {% endblock %}
+
+                    {% block tags %}
+                    <div class="middle_links">
+                        <h3>Categories</h3>
+                        <p class="tags">{% for tag in tags %}
+                              <a href="/tag/{{ tag|urlencode }}">{{ tag }}</a>
+                           {% endfor %}
+                        </p>
+                    </div>
+                    {% endblock %}
+
+                    {% block extra_panel %}
+                    {% endblock %}
+
+                    {% block featuredPages1 %}
+                    <div class="middle_links">
+                        <h3>{{ featuredMyPages.title }}</h3>
+                        <p>
+                            {{ featuredMyPages.description }}
+                        </p>
+                        <ul>
+                            {% for entry in featuredMyPages.entries %}
+                            <li>
+                                <a href="{{ entry.url }}">{{ entry.title }}</a>
+                                - {{ entry.description }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endblock %}
+
+                    {% block featuredPages2 %}
+                    <div class="middle_links">
+                        <h3>{{ featuredOthersPages.title }}</h3>
+                        <p>
+                            {{ featuredOthersPages.description }}
+                        </p>
+                        <ul>
+                            {% for entry in featuredOthersPages.entries %}
+                            <li>
+                                <a href="{{ entry.url }}">{{ entry.title }}</a>
+                                - {{ entry.description }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endblock %}
+
+                    {% block subscribe %}
+                    <div class="middle_links">
+                        <h3>Subscribe</h3>
+                        <p>
+                            Stay updated on my meandering thoughts &amp; activities via Atom syndication.
+                        </p>
+                        <ul>
+                            <li>
+                                <a href="{{ blog.master_atom_url }}" title="Full content Atom feed">Atom feed</a>
+                                - Full content
+                            </li>
+                        </ul>
+                    </div>
+                    {% endblock %}
+                </div>
+                {% endblock %}
+
+                <!-- Third column: Show selected external links, ads, etc. -->
+                {% block third_column %}
+                <div id="tertCol">
+                    <div id="elseWhere">
+                        <ul id="imgLinks">
+                            <li>
+                                <a href="http://web.meetup.com/116/?track=i3/mu_kxqazfu2yy">
+                                    <img class="anyheight" src="/static/images/meetup-bw.png" alt="Silicon Valley Google AppEngine Developers Meetup" />
+                                </a>
+                            </li>
+                            <li>
+                                <a href="http://5thirtyone.com/grid-focus" title="Download Grid Focus by: Derek Punsalan">
+                                    <img src="/static/images/guide/grid_focus_531.gif" alt="Grid Focus - 531" />
+                                </a>
+                            </li>
+                            <li>
+                                <a href="http://is.derekpunsalan.com/" title="Visit Derek Punsalan...is">
+                                    <img src="/static/images/guide/is.gif" alt="Derek Punsalan...is" />
+                                </a>
+                            </li>
+                        </ul>
+                    </div><!-- close #imgLinks -->
+                </div><!-- close #tertCol -->
+                {% endblock %}
+            </div>
+
+            <div id="footer">
+                <ul class="nav fix">
+                    <li>
+                        <a href="/" title="Return to the the frontpage">Home
+                            <br/>
+                            <span>Frontpage</span>
+                        </a>
+                    </li>
+                    {% if user %}
+                    <li>
+                        <a href="{{ logout_url }}" title="Logout">Logout
+                            <br/>
+                            <span>goodbye</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li>
+                        <a href="{{ login_url }}" title="Login">Login
+                            <br/>
+                            <span>Google id</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% for link in navlinks %}
+                    <li>
+                        <a href="{{ link.url }}" title="{{ link.description }}">{{ link.title }}
+                            <br/>
+                            <span>{{ link.description }}</span>
+                        </a>
+                    </li>
+                    {% endfor %}
+                    <li>
+                        <a href="{{ blog.master_atom_url }}" title="Subscribe to the main Atom feed">Atom
+                            <br/>
+                            <span>Syndication</span>
+                        </a>
+                    </li>
+                    <li class="top">
+                        <a href="#top" title="Return to the top">Top
+                            <br/>
+                            <span>Return to top</span>
+                        </a>
+                    </li>
+                </ul>
+                <div id="attribution">
+                    <div id="downloadlinks">
+                        <p>Bloog for <a href="http://code.google.com/appengine/">Google App Engine</a> is available at
+                            <a href="http://github.com/DocSavage/bloog">GitHub</a> under an MIT license.</p>
+                        <p>This template is an adapted version of <a href="http://5thirtyone.com/grid-focus" title="Grid Focus by: Derek Punsalan">Grid Focus</a>
+                            for <a href="http://www.djangoproject.com/documentation/templates/">Django templates</a>.</p>
+                        <p>Cache debugging: Page was rendered {% now "M j, H:i:s" %}.
+                        {% if user %}
+                          ({{ user.nickname }})
+                        {% endif %}
+                        {% if user_is_admin %}
+                          User is administrator.
+                        {% endif %}
+                        </p>
+                    </div>
+                    <img id="poweredby" src="/static/images/appengine-noborder-120x30.gif" alt="Powered by Google App Engine" />
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript" src="/static/js/toggle.js"></script>
+        {% block bottom_body %}
+        {% endblock %}
+    </body>
+</html>

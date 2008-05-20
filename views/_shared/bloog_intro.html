@@ -1,0 +1,34 @@
+<div class="post">
+    <div class="postMeta"><span class="date">No articles</span></div>
+    <h2>Welcome to Bloog</h2>
+    <div class="entry">
+    <p><em>Note: This is an unfinished preview.  Bloog will be released before the first
+        <a href="http://web.meetup.com/116/">Silicon Valley Google AppEngine Developers meetup</a>
+        where I'll be talking about the software.</em></p>
+    <p>This is the default page for Bloog, a simple RESTful blog/homepage on Google AppEngine.</p>
+    <p>Bloog was created to experiment with blog ideas on Google AppEngine while allowing migration from a legacy blog. 
+        These goals shape the feature set, which includes:</p>
+    <ul>
+        <li>A resource-oriented architecture, as described in the great book
+            <a href="http://www.amazon.com/exec/obidos/tg/detail/-/0596529260/writertopia-20">RESTful Web Services</a></li>
+        <li>A <a href="http://www.drupal.org">Drupal</a> converter/uploader that queries a local MySQL database 
+            and uploads the data to a Bloog through REST calls.</li>
+        <li>URL aliases, which can be created by the drupal uploader, that provide programmatic redirection from legacy urls.</li>
+        <li>Dynamic per-article sidebars.</li>
+    </ul>
+    <p>From an AppEngine developer's perspective, you may find the source code interesting to examine due to:</p>
+    <ul>
+        <li>RESTful design using webapp.</li>
+        <li>An example of full-text searching using the slightly documented appengine.ext.search module</li>
+        <li>Convention-over-configuration in organizing controller and view files.</li>
+        <li>Authorization using python decorators and built-in Google authentication.</li>
+        <li>Caching using global variables.</li>
+        <li>Some timing facility to test different datastore models.</li>
+        <li>Serialization of python objects into a datastore blob.</li>
+    </ul>
+    <p>Source code and more information can be found on the <a href="http://github.com/DocSavage/bloog/wikis">GitHub wiki</a> for
+        the Bloog project.</p>
+    <p>If your login has administrative permission for this Bloog, you can add articles after 
+        <a href="{{ login_url }}">login</a>.</p>
+    </div>
+</div>

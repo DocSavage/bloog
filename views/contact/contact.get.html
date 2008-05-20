@@ -1,0 +1,31 @@
+{% extends "../_shared/base.html" %}
+{% block first_column %}
+<div id="mainCol" class="fix">
+    <a name="main"></a>
+    <div class="post">
+        <h2>Contact Me</h2>
+        {% ifequal blog.email "you@foo.com" %}
+        <div class="entry">
+            <p>We're sorry.  The administrator of this blog hasn't set his or her e-mail yet.</p>
+            <p>This poses a conundrum.  How are you to let the blog author know this blog is
+               improperly setup when this blog contact form is the only way you can reach the author?</p>
+            <p>Most vexing.  I haven't got a clue.  You might want to try Facebook or a general Google search
+               to see if the author has a public contact address.</p>
+        </div>
+        {% else %}
+        <form id="htmlform" action="{{ current_url }}" method="post">
+            <p><input type="text" id="author" name="author" size="22" tabindex="1" />
+                <label for="author"><small>Name</small></label></p>
+            <p><input type="text" id="email" name="email" size="22" tabindex="2" />
+                <label for="email"><small>Email</small></label></p>
+            <p><input type="text" id="subject" name="subject" size="22" tabindex="3" />
+                <label for="subject"><small>Subject</small></label></p>
+            <p><textarea id="message" name="message" cols="60" rows="10" tabindex="4">Please enter a message.</textarea></p>
+            <p><input name="submit" type="image" src="/static/images/btn_submit.gif" alt="Submit" id="submit" tabindex="5" value="Submit" /></p>
+            <input type="hidden" name="token" value="{{ token }}" />
+            <input type="hidden" name="curtime" value="{{ curtime|floatformat }}" />
+        </form>
+        {% endifequal %}
+    </div>
+</div>
+{% endblock %}

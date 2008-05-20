@@ -1,0 +1,23 @@
+{% extends "../_shared/base.html" %}
+
+{% block first_column %}
+    <div id="mainCol" class="fix"><a name="main"></a>
+    {% if articles %}
+        <div class="post">
+            <h2>Articles tagged with '{{ tag }}'</h2>
+        </div>
+        {% for article in articles %}
+            {% include '../_shared/article_excerpt.html' %}
+        {% endfor %}
+    {% else %}
+        <div class="post">
+            <div class="postMeta"><span class="date">No Matches</span></div>
+            <h2>No articles tagged with '{{ tag }}'</h2>
+            <div class="entry">
+                <p>It's possible that an article with the tag was removed.</p>
+                <p>Please try another tag or use the full-text search.</p>
+            </div>
+        </div>
+    {% endif %}
+    </div>
+{% endblock %}

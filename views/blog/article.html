@@ -1,0 +1,64 @@
+{% extends "../_shared/base.html" %}
+
+{% block first_column %}
+<div id="mainCol" class="fix"><a name="main"></a>
+{% if article %}
+    <div class="post" id="post-{{ article.id }}">
+        <div class="postMeta">
+            <span class="date">{{ article.published.date }}</span>
+            <span class="comments"><a href="/{{ article.permalink }}#comments">{{ article.num_comments|default:"0" }}</a></span>
+        </div>
+        <h2><a href="/{{ article.permalink }}" title="{{ article.title }}">{{ article.title }}</a></h2>
+        <div class="entry">
+            <p>{{ article.html }}</p>
+        </div>
+    </div>
+    <div id="more_reading">
+        <p class="tags">Category: 
+            {% for tag in article.tags %}
+                <a href="/tag/{{ tag|urlencode }}">{{ tag }}</a>
+            {% endfor %}
+        </p>
+    </div>
+{% endif %}
+{% if comments %}
+    <div id="comments_wrapper">
+        <div id="comments" class="section">
+            <h3>{{ article.num_comments }} Comments</h3>
+        </div>
+        <ol class="commentslist">
+        {% for comment in comments %}
+            <li id="{{ comment.permalink }}" class="alt item">
+                <div class="fix">
+                    <div class="author_meta">
+                        <p class="author_meta">
+                            <span class="user">{{ comment.name|default:"" }}</span>
+                            <span class="comment_edit" />
+                        </p>
+                    </div>
+                    <div class="comment_text">
+                        {{ comment.body }}
+                    </div>
+                    <p class="post_meta">
+                        <a title="Comment Permalink" href="#comment-{{ comment.permalink }}">{{ comment.published.date }}</a>
+                    </p>
+                </div>
+            </li>
+        {% endfor %}
+        </ol>
+    </div>
+{% endif %}
+{% if not article %}
+    <div class="post">
+        <div class="postMeta"><span class="date">No Matches</span></div>
+        <h2>No Article at Given Address</h2>
+        <div class="entry">
+            <p>You seem to have found a mis-linked page or search query with no associated results.</p>
+            <p>Please trying your search again. 
+                If you feel that you should be staring at something a little more concrete, feel free to email the author of this site 
+                or browse the archives.</p>
+        </div>
+    </div>
+{% endif %}
+</div>
+{% endblock %}
