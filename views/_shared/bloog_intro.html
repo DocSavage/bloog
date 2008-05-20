@@ -2,7 +2,7 @@
     <div class="postMeta"><span class="date">No articles</span></div>
     <h2>Welcome to Bloog</h2>
     <div class="entry">
-    <p><em>Note: This is an unfinished preview.  Bloog will be released before the first
+    <p><em>Bloog 0.5 will be officially released at the first
         <a href="http://web.meetup.com/116/">Silicon Valley Google AppEngine Developers meetup</a>
         where I'll be talking about the software.</em></p>
     <p>This is the default page for Bloog, a simple RESTful blog/homepage on Google AppEngine.</p>
@@ -13,18 +13,22 @@
             <a href="http://www.amazon.com/exec/obidos/tg/detail/-/0596529260/writertopia-20">RESTful Web Services</a></li>
         <li>A <a href="http://www.drupal.org">Drupal</a> converter/uploader that queries a local MySQL database 
             and uploads the data to a Bloog through REST calls.</li>
-        <li>URL aliases, which can be created by the drupal uploader, that provide programmatic redirection from legacy urls.</li>
-        <li>Dynamic per-article sidebars.</li>
+        <li>A datastore deletion utility that can clear out your entities in your Bloog's datastore.</li>
+        <li>Arbitrary URL aliases, which can be created by the drupal uploader, that provide redirection from legacy urls.
+            There's also a programmatic aliasing function that can take a regex like <code>'node/(.*)'</code> and map it to legacy IDs
+            stored with the blog entries.  (http://foo.com/node/4 is a typical Drupal url.)</li>
+        <li>Dynamic per-article sidebars (in progress).</li>
     </ul>
-    <p>From an AppEngine developer's perspective, you may find the source code interesting to examine due to:</p>
+    <p>From an AppEngine developer's perspective, you may find the source code interesting to examine due to things like:</p>
     <ul>
         <li>RESTful design using webapp.</li>
-        <li>An example of full-text searching using the slightly documented appengine.ext.search module</li>
         <li>Convention-over-configuration in organizing controller and view files.</li>
         <li>Authorization using python decorators and built-in Google authentication.</li>
         <li>Caching using global variables.</li>
         <li>Some timing facility to test different datastore models.</li>
-        <li>Serialization of python objects into a datastore blob.</li>
+        <li>Serialization of a python object into a datastore blob.</li>
+        <li>An example of full-text searching using the slightly documented appengine.ext.search module.
+            (This works and was commented out due to a weird (Google?) bug when uploading large posts.  Perhaps a timeout?)</li>
     </ul>
     <p>Source code and more information can be found on the <a href="http://github.com/DocSavage/bloog/wikis">GitHub wiki</a> for
         the Bloog project.</p>

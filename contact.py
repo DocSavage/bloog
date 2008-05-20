@@ -21,8 +21,9 @@
 # THE SOFTWARE.
 """
 contact.py
-This module provides a simple AJAX client for entering a message and the
+This module provides a simple form for entering a message and the
 handlers for receiving the message through a HTTP POST.
+TODO: Make this an Ajax form with built-in captcha.
 """
 __author__ = 'William T. Katz'
 

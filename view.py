@@ -59,8 +59,6 @@ def get_view_file(handler, params={}):
      <verb> = HTTP verb, e.g. GET or POST
      <ext> = html, xml, etc.
     Only <handler> and <ext> are required.
-    Example result:
-      ['foo.html','foo.user.html','foo.admin.html','foo.get.html','foo.user.get.html','foo.admin.get.html']
     """
     desired_ext = 'html'
     if params.has_key('ext'):
