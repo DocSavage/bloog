@@ -30,4 +30,5 @@ skip_files: |
  (\..*)|
  (utilities/.*)|
  (tests/.*)|
+ (docs/.*)|
  )$
