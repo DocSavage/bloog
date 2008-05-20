@@ -91,8 +91,8 @@ class TimingHandler(restful.Controller):
         total_full_renders = 0
         for key in TIMINGS:
             full_renders = 0
-            if view.FULL_RENDERS.has_key(key):
-                full_renders = view.FULL_RENDERS[key]
+            if view.NUM_FULL_RENDERS.has_key(key):
+                full_renders = view.NUM_FULL_RENDERS[key]
                 total_full_renders += full_renders
             url_timing = TIMINGS[key]
             if url_timing["runs"] > 0:
