@@ -83,6 +83,7 @@ Options:
 -u, --dbuserpwd  = user:passwd for MySQL server (e.g., 'johndoe:mypasswd')
 -n, --dbname     = name of Drupal database name (default is 'drupal')
 -l, --uri        = the uri (web location) of the Bloog app
+-a, --articles   = only upload this many articles (for testing)
 '''
 
 
@@ -220,7 +221,7 @@ class DrupalConverter(object):
             return re.sub('\n', '<br />', body)
         return body
 
-    def go(self):
+    def go(self, num_articles=None):
         # Get all the term (tag) data and the hierarchy pattern
         self.cursor.execute("SELECT tid, name FROM term_data")
         rows = self.cursor.fetchall()
@@ -259,6 +260,8 @@ class DrupalConverter(object):
                     else:
                         article['post_url'] = '/'
                     articles.append(article)
+                    if num_articles and len(articles) >= num_articles:
+                        break
                 else:
                     print "Rejected article with title (", article['title'], ") because bad format."
 
@@ -320,7 +323,8 @@ class DrupalConverter(object):
 def main(argv):
     try:
         try:
-            opts, args = getopt.gnu_getopt(argv, 'hd:p:u:n:l:v', ["help", "dbhostname=", "dbport=", "dbuserpwd=", "dbname=", "uri="])
+            opts, args = getopt.gnu_getopt(argv, 'hd:p:u:n:l:a:v', 
+                                           ["help", "dbhostname=", "dbport=", "dbuserpwd=", "dbname=", "uri=", "articles="])
         except getopt.error, msg:
             raise UsageError(msg)
 
@@ -330,6 +334,7 @@ def main(argv):
         dbuser = ''
         dbpasswd = ''
         app_uri = 'http://localhost:8080'
+        num_articles = None
         
         # option processing
         for option, value in opts:
@@ -351,6 +356,8 @@ def main(argv):
                     print "-u, --dbuserpwd should be followed by 'username:passwd' with colon separating required information"
             if option in ("-n", "--dbname"):
                 dbname = value
+            if option in ("-a", "--articles"):
+                num_articles = string.atoi(value)
             if option in ("-l", "--uri"):
                 print "Got uri:", value
                 app_uri = value
@@ -376,7 +383,7 @@ def main(argv):
                                         dbport=dbport,
                                         dbname=dbname,
                                         app_uri=app_uri)
-            converter.go()
+            converter.go(num_articles)
             converter.close()
     
     except UsageError, err:
