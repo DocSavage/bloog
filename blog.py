@@ -204,6 +204,7 @@ class PageHandler(restful.Controller):
 
             page = view.ViewPage()
             page.render(self, {"title": article.title, "article": article, "comments": comments})
+            return
 
         # This didn't fall into any of our pages or aliases.
         # Page not found.
