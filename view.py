@@ -91,7 +91,10 @@ def get_view_file(handler, params={}):
 class ViewPage(object):
     def __init__(self, cache_time=None):
         """Each ViewPage has a variable cache timeout"""
-        self.cache_time = cache_time or config.blog['cache_time']
+        if cache_time == None:
+            self.cache_time = config.blog['cache_time']
+        else:
+            self.cache_time = cache_time
 
     def full_render(self, handler, template_file, more_params):
         """Render a dynamic page from scatch."""
