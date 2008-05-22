@@ -86,6 +86,16 @@ Options:
 -a, --articles   = only upload this many articles (for testing)
 '''
 
+# List the ASCII chars that are OK for our pages
+OK_CHARS = range(32,126) + [ord(x) for x in ['\n', '\t', '\r']]
+OK_TITLE = range(32,126)
+
+def clean_multiline(raw_string):
+    return ''.join([x for x in raw_string if ord(x) in OK_CHARS])
+
+def clean_singleline(raw_string):
+    return ''.join([x for x in raw_string if ord(x) in OK_TITLE])
+
 
 class Error(Exception):
     """Base-class for exceptions in this module."""
@@ -185,9 +195,6 @@ class DrupalConverter(object):
         "textile"
     ]
 
-    # List the ASCII chars that are OK for our blog
-    OK_CHARS = range(32,126) + [ord(x) for x in ['\n', '\t', '\r']] 
-
     def __init__(self, auth_cookie, dbuser, dbpasswd, dbhostname, dbport, dbname, app_uri):
         self.webserver = HttpRESTClient(auth_cookie)
         self.app_uri = app_uri
@@ -207,7 +214,7 @@ class DrupalConverter(object):
     def get_html(self, raw_body, markup_type):
         """ Convert various Drupal formats to html """
 
-        body = ''.join([x for x in raw_body if ord(x) in self.OK_CHARS])
+        body = clean_multiline(raw_body)
 
         def repl(tmatch):
             if tmatch:
@@ -244,7 +251,7 @@ class DrupalConverter(object):
             ntype = row[1]
             if ntype in ['page', 'blog']:
                 article['legacy_id'] = row[0]
-                article['title'] = row[2]
+                article['title'] = clean_singleline(row[2])
                 article['format'] = None
                 if row[14] >= 0 and row[14] <= 4:
                     cur_format = self.drupal_format_description[row[14]]
@@ -295,13 +302,13 @@ class DrupalConverter(object):
             for row in rows:
                 # Store comment associated with article by POST to article entry uri
                 comment = {
-                    'title': row[0],
-                    'body': row[1],
+                    'title': clean_singleline(row[0]),
+                    'body': clean_multiline(row[1]),
                     'published': str(datetime.datetime.fromtimestamp(row[2])),
-                    'thread': row[3],
-                    'name': row[4],
-                    'email': row[5],
-                    'homepage': row[6]
+                    'thread': clean_singleline(row[3]),
+                    'name': clean_singleline(row[4]),
+                    'email': clean_singleline(row[5]),
+                    'homepage': clean_singleline(row[6])
                 }
                 print "Posting comment '" + row[0] + "' to", comment_posting_uri
                 self.webserver.post(comment_posting_uri, comment)
