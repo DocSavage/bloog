@@ -2,12 +2,12 @@
     <div class="postMeta"><span class="date">No articles</span></div>
     <h2>Welcome to Bloog</h2>
     <div class="entry">
-    <p><em>Bloog 0.5 will be officially released at the first
+    <p><em>Note: I'll be talking about Bloog internals at the first
         <a href="http://web.meetup.com/116/">Silicon Valley Google AppEngine Developers meetup</a>
-        where I'll be talking about the software.</em></p>
+        at Stanford on Wed, May 21, 7 pm.</em></p>
     <p>This is the default root page for Bloog, a simple RESTful blog/homepage on Google AppEngine, and
-        shows what it looks like out of the box with no posts or pages.  To see a Bloog with data, visit
-        my <a href="http://billkatz-test.appspot.com">homepage</a>.</p>
+        shows what it looks like out of the box with no posts or pages.  You can see 
+        <a href="http://billkatz-test.appspot.com">a Bloog with data here</a>.</p>
     <p>Bloog is open sourced under the MIT License.  Go forth and multiply.</p>
     <p>Bloog was created to experiment with blog ideas on Google AppEngine while allowing migration from a legacy blog. 
         These goals shape the feature set, which includes:</p>
@@ -20,7 +20,9 @@
         <li>Arbitrary URL aliases, which can be created by the drupal uploader, that provide redirection from legacy urls.
             There's also a programmatic aliasing function that can take a regex like <code>'node/(.*)'</code> and map it to legacy IDs
             stored with the blog entries.  (http://foo.com/node/4 is a typical Drupal url.)</li>
-        <li>Dynamic per-article sidebars (in progress).</li>
+        <li>Dynamic per-article sidebars. (in progress)</li>
+        <li>A <a href="http://developer.yahoo.com/yui">Yahoo UI</a> 
+            AJAX front-end for posting and managing entries in a RESTful way. (in progress)</li>
     </ul>
     <p>From an AppEngine developer's perspective, you may find the source code interesting to examine due to things like:</p>
     <ul>
@@ -31,7 +33,8 @@
         <li>Some timing facility to test different datastore models.</li>
         <li>Serialization of a python object into a datastore blob.</li>
         <li>An example of full-text searching using the slightly documented appengine.ext.search module.
-            (This works and was commented out due to a weird (Google?) bug when uploading large posts.  Perhaps a timeout?)</li>
+            (This works but was commented out due to a weird (Google?) bug when uploading large posts.  Perhaps a timeout?
+             It works fine for smaller posts on Google hosts and all posts locally.)</li>
     </ul>
     <p>Source code and more information can be found on the <a href="http://github.com/DocSavage/bloog/wikis">GitHub wiki</a> for
         the Bloog project.</p>
