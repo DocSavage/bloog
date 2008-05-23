@@ -14,7 +14,7 @@ default_blog = {
     "description": "A RESTful Blog/Homepage for Google AppEngine.",
     "root_url": "http://bloog.billkatz.com",
     "master_atom_url": "/feeds/atom.xml",
-    "cache_time": 300,        # You can override this default for each page through a handler's call to view.ViewPage(cache_time=...)
+    "cache_time": 0,        # You can override this default for each page through a handler's call to view.ViewPage(cache_time=...)
 
     # We allow a mapping from some old url pattern to the current query using a regex's matched string.  (See PageHandler in blog.py)
     # The example below is for Drupal and should be uncommented if you are converting from Drupal

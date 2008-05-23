@@ -62,6 +62,7 @@ li.top a{width:100px;}
 
 /* main - middle content and columns */
 #mid{}#mainCol{float:left;margin:26px 0 0 0;width:435px;}
+#mid{}#twoCol{float:left;margin:26px 0 0 0;width:649px;}
 
 /* style individual sidebars */
 #midCol ul a{font-weight:bold;}

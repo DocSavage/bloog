@@ -63,6 +63,12 @@ class Article(db.Model):
     def rfc3339_updated(self):
         return self.updated.strftime('%Y-%m-%dT%H:%M:%SZ')
 
+    def is_big(self):
+        if len(self.html) > 2000 or '<img' in self.html or '<code>' in self.html or '<pre>' in self.html:
+            return True
+        else:
+            return False
+
 class Comment(db.Model):
     permalink = db.StringProperty(required=True)
     name = db.StringProperty()

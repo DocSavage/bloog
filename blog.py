@@ -203,7 +203,8 @@ class PageHandler(restful.Controller):
                 comments.append(comment)
 
             page = view.ViewPage()
-            page.render(self, {"title": article.title, "article": article, "comments": comments})
+            use_two_columns = article.is_big() or len(article.html) + len(comments)*80 > 2000
+            page.render(self, {"two_columns": use_two_columns, "title": article.title, "article": article, "comments": comments})
             return
 
         # This didn't fall into any of our pages or aliases.
@@ -308,7 +309,8 @@ class ArticleHandler(restful.Controller):
                 comments.append(comment)
 
         page = view.ViewPage()
-        page.render(self, {"title": article.title, "article": article, "comments": comments})
+        use_two_columns = article.is_big() or len(article.html) + len(comments)*80 > 2000
+        page.render(self, {"two_columns": use_two_columns, "title": article.title, "article": article, "comments": comments})
 
     @authorized.role("admin")
     def put(self, year, month, perm_stem):
