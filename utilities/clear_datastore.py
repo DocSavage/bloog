@@ -74,7 +74,7 @@ For uploading data into a Google AppEngine-hosted app, the cookie would begin wi
 clear_datastore.py 'ACSID=AJXUWfE-aefkae...'
 
 Options:
--l, --uri        = the uri (web location) of the Bloog app
+-l, --url        = the url (web location) of the Bloog app
 '''
 
 
@@ -92,7 +92,7 @@ class RequestError(Error):
     """An error occured while trying a HTTP request to the Bloog app."""
 
 class UnsupportedSchemeError(Error):
-    """Tried to access uri with unsupported scheme (not http or https)."""
+    """Tried to access url with unsupported scheme (not http or https)."""
 
 class HttpRESTClient(object):
 
@@ -107,9 +107,9 @@ class HttpRESTClient(object):
     def __init__(self, auth_cookie):
         self.auth_cookie = auth_cookie
 
-    def delete(self, uri):
+    def delete(self, url):
         headers = {'Cookie': self.auth_cookie}
-        scheme, netloc, path, query, fragment = urlparse.urlsplit(uri)
+        scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
         success = False
         try:
             connection = HttpRESTClient.connect(scheme, netloc)
@@ -134,11 +134,11 @@ class HttpRESTClient(object):
 def main(argv):
     try:
         try:
-            opts, args = getopt.gnu_getopt(argv, 'hl:v', ["help", "uri="])
+            opts, args = getopt.gnu_getopt(argv, 'hl:v', ["help", "url="])
         except getopt.error, msg:
             raise UsageError(msg)
 
-        app_uri = 'http://localhost:8080'
+        app_url = 'http://localhost:8080'
         
         # option processing
         for option, value in opts:
@@ -147,13 +147,13 @@ def main(argv):
                 verbose = True
             if option in ("-h", "--help"):
                 raise UsageError(help_message)
-            if option in ("-l", "--uri"):
-                print "Got uri:", value
-                app_uri = value
-                if app_uri[:4] != 'http':
-                    app_uri = 'http://' + app_uri
-                if app_uri[-1] == '/':
-                    app_uri = app_uri[:-1]
+            if option in ("-l", "--url"):
+                print "Got url:", value
+                app_url = value
+                if app_url[:4] != 'http':
+                    app_url = 'http://' + app_url
+                if app_url[-1] == '/':
+                    app_url = app_url[:-1]
 
         if len(args) < 2:
             raise UsageError("Please specify the authentication cookie string as first argument.")
@@ -165,9 +165,9 @@ def main(argv):
             #passwd = getpass.getpass("Password: ")
 
             webserver = HttpRESTClient(auth_cookie)
-            while webserver.delete(app_uri + '/Article'):
+            while webserver.delete(app_url + '/Article'):
                 pass
-            while webserver.delete(app_uri + '/Comment'):
+            while webserver.delete(app_url + '/Comment'):
                 pass
 
     except UsageError, err:

@@ -82,10 +82,8 @@
                 <div id="midCol">
                     {% block search %}
                     <div id="searchWrap">
-                        <form method="get" id="searchForm" action="/search">
-                            <input type="text" value="{{ searchterm }}" name="s" id="s" />
-                            <input id="searchsubmit" type="image" src="/static/images/btn_search.gif" alt="Search" />
-                        </form>
+                        <div id="searchcontrol"></div>
+                        <!--<input id="searchsubmit" type="image" src="/static/images/btn_search.gif" alt="Search" />-->
                     </div>
                     {% endblock %}
 
@@ -243,7 +241,37 @@
                 </div>
             </div>
         </div>
+
         <script type="text/javascript" src="/static/js/toggle.js"></script>
+
+        {% block ajax_search_api %}
+        <script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAArkJQygN7d9x7IYE-cqa7pxRplEICxsDn12H6XOoG8NhvPWEaehQp5DHoozVgJSYne7zLwa0go_ST_g">
+        </script>
+        <script type="text/javascript">
+            google.load("search", "1");
+            function searchInitialize() {
+                // var searchControl = new google.search.SearchControl();
+                var searchDiv = document.getElementById("searchcontrol");
+                this.searchForm = new google.search.SearchForm(false, searchDiv);
+                this.searchForm.setOnSubmitCallback(this, this.newSearch);
+                // called on form submit
+                this.newSearch = function(form) {
+                    if (form.input.value) {
+                        this.searchControl.execute(form.input.value);
+                    }
+                    return false;
+                }
+                var bloogSearch = new google.search.WebSearch();
+                bloogSearch.setUserDefinedLabel("{{ blog.title }}");
+                bloogSearch.setUserDefinedClassSuffix("siteSearch");
+                bloogSearch.setSiteRestriction("www.billkatz.com")
+                searchControl.addSearcher(bloogSearch);
+                searchControl.draw(document.getElementById("searchcontrol"));
+            }
+            google.setOnLoadCallback(searchInitialize);
+        </script>
+        {% endblock %}
+
         {% block bottom_body %}
         {% endblock %}
     </body>

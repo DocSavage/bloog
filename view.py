@@ -99,14 +99,14 @@ class ViewPage(object):
     def full_render(self, handler, template_file, more_params):
         """Render a dynamic page from scatch."""
         global NUM_FULL_RENDERS, TAGS_NONBREAKING
-        uri = handler.request.uri
-        scheme, netloc, path, query, fragment = urlparse.urlsplit(uri)
+        url = handler.request.uri
+        scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
         if not NUM_FULL_RENDERS.has_key(path):
             NUM_FULL_RENDERS[path] = 0
         NUM_FULL_RENDERS[path] += 1         # This lets us see % of cached views in /admin/timings (see timings.py)
 
         template_params = {
-            "current_url": uri,
+            "current_url": url,
             "bloog_version": bloog_version,
             "user": users.get_current_user(),
             "user_is_admin": users.is_current_user_admin(),
@@ -123,9 +123,9 @@ class ViewPage(object):
         """Checks if there's a non-stale cached version of this view, and if so, return it."""
         if self.cache_time:
             # See if there's a cache within time.
-            # The cache key suggests a problem with the URI <-> function mapping, because a significant advantage of RESTful
-            #  design is that a distinct URI gets you a distinct, cacheable resource.  If we have to include states like
-            #  "user?" and "admin?", then it suggests these flags should be in URI as well.
+            # The cache key suggests a problem with the url <-> function mapping, because a significant advantage of RESTful
+            #  design is that a distinct url gets you a distinct, cacheable resource.  If we have to include states like
+            #  "user?" and "admin?", then it suggests these flags should be in url as well.
             # TODO - Think about the above with respect to caching.
             global VIEW_CACHE
             key = handler.request.url + str(users.get_current_user() != None) + str(users.is_current_user_admin())

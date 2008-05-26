@@ -24,10 +24,10 @@
 
 This simple homepage application tries to follow the ideas put forth in the
 book 'RESTful Web Services' by Leonard Richardson & Sam Ruby.  It follows a
-Resource-Oriented Architecture where each URI specifies a resource that
+Resource-Oriented Architecture where each URL specifies a resource that
 accepts HTTP verbs.
 
-Rather than create new URIs to handle web-based form submission of resources,
+Rather than create new URLs to handle web-based form submission of resources,
 this app embeds form submissions through javascript.  The ability to send
 HTTP verbs POST, PUT, and DELETE is delivered through javascript within the
 GET responses.  In other words, a rich client gets transmitted with each GET.
@@ -249,7 +249,7 @@ class PageHandler(restful.Controller):
 class TagHandler(restful.Controller):
     def get(self, encoded_tag):
         tag =  re.sub('(%25|%)(\d\d)', lambda cmatch: chr(string.atoi(cmatch.group(2), 16)), encoded_tag)   # No urllib.unquote in AppEngine?
-        logging.debug("TagHandler#get called on uri %s (%s -> %s)", self.request.url, encoded_tag, tag)
+        logging.debug("TagHandler#get called on NUM_FULL_RENDERS %s (%s -> %s)", self.request.url, encoded_tag, tag)
         
         page = view.ViewPage()
         page.render_query(

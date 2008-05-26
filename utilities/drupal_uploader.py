@@ -82,7 +82,7 @@ Options:
 -p, --dbport     = port of MySQL server (default is '3306')
 -u, --dbuserpwd  = user:passwd for MySQL server (e.g., 'johndoe:mypasswd')
 -n, --dbname     = name of Drupal database name (default is 'drupal')
--l, --uri        = the uri (web location) of the Bloog app
+-l, --url        = the url (web location) of the Bloog app
 -a, --articles   = only upload this many articles (for testing)
 '''
 
@@ -111,7 +111,7 @@ class RequestError(Error):
     """An error occured while trying a HTTP request to the Bloog app."""
 
 class UnsupportedSchemeError(Error):
-    """Tried to access uri with unsupported scheme (not http or https)."""
+    """Tried to access url with unsupported scheme (not http or https)."""
 
 class HttpRESTClient(object):
 
@@ -126,8 +126,8 @@ class HttpRESTClient(object):
     def __init__(self, auth_cookie):
         self.auth_cookie = auth_cookie
 
-    def do_request(self, uri, verb, headers, body=''):
-        scheme, netloc, path, query, fragment = urlparse.urlsplit(uri)
+    def do_request(self, url, verb, headers, body=''):
+        scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
         print("Trying %s to %s (%s) using %s" % (verb, netloc, path, scheme))
 
         try:
@@ -150,28 +150,28 @@ class HttpRESTClient(object):
           print('Encountered exception accessing HTTP server: %s', e)
           raise HTTPConnectError(e)
 
-    def get(self, uri):
+    def get(self, url):
         headers = {}
         headers['Cookie'] = self.auth_cookie
         print "Cookie:", self.auth_cookie
-        self.do_request(uri, 'GET', headers)
+        self.do_request(url, 'GET', headers)
 
-    def post(self, uri, body_dict):
+    def post(self, url, body_dict):
         body = urllib.urlencode(body_dict)
         headers = {
             'Content-Type': 'application/x-www-form-urlencoded',
             'Content-Length': len(body),
             'Cookie': self.auth_cookie
         }
-        status, reason, content, tuple_headers = self.do_request(uri, 'POST', headers, body)
+        status, reason, content, tuple_headers = self.do_request(url, 'POST', headers, body)
         # Our app expects POSTs to return a url link with particular format.
         # This successful response syntax can be found in blog.py, successful_post_response()
         url_match = re.match('<a href="([\w\-/]+)">(\w+) successfully stored</a>', content)
         if not url_match:
             raise RequestError('Unexpected response from web app: %s, %s, %s' % (status, reason, content))
-        entry_uri = url_match.group(1)
+        entry_url = url_match.group(1)
         entry_type = url_match.group(2)
-        return entry_uri, entry_type
+        return entry_url, entry_type
 
 
 class DrupalConverter(object):
@@ -195,9 +195,9 @@ class DrupalConverter(object):
         "textile"
     ]
 
-    def __init__(self, auth_cookie, dbuser, dbpasswd, dbhostname, dbport, dbname, app_uri):
+    def __init__(self, auth_cookie, dbuser, dbpasswd, dbhostname, dbport, dbname, app_url):
         self.webserver = HttpRESTClient(auth_cookie)
-        self.app_uri = app_uri
+        self.app_url = app_url
 
         # Open DB server connection and get cursor to database
         self.conn = MySQLdb.connect(user = dbuser,
@@ -289,18 +289,18 @@ class DrupalConverter(object):
 
             # Store the article by posting to either root (if "page") or blog month (if "blog" entry)
             print('Posting article with title "%s" to %s' % (article['title'], article['post_url']))
-            entry_permalink, entry_type = self.webserver.post(self.app_uri + article['post_url'], article)
+            entry_permalink, entry_type = self.webserver.post(self.app_url + article['post_url'], article)
             if article['legacy_id']:
                 redirect[article['legacy_id']] = entry_permalink
             print('Received response from Bloog that %s entry successfully stored at %s' % (entry_type, entry_permalink))
 
             # Store comments associated with the article
-            comment_posting_uri = self.app_uri + '/' + entry_permalink
+            comment_posting_url = self.app_url + '/' + entry_permalink
             sql = "SELECT subject, comment, timestamp, thread, name, mail, homepage FROM comments WHERE nid = " + str(article['legacy_id'])
             self.cursor.execute(sql)
             rows = self.cursor.fetchall()
             for row in rows:
-                # Store comment associated with article by POST to article entry uri
+                # Store comment associated with article by POST to article entry url
                 comment = {
                     'title': clean_singleline(row[0]),
                     'body': clean_multiline(row[1]),
@@ -310,8 +310,8 @@ class DrupalConverter(object):
                     'email': clean_singleline(row[5]),
                     'homepage': clean_singleline(row[6])
                 }
-                print "Posting comment '" + row[0] + "' to", comment_posting_uri
-                self.webserver.post(comment_posting_uri, comment)
+                print "Posting comment '" + row[0] + "' to", comment_posting_url
+                self.webserver.post(comment_posting_url, comment)
             
         # create_python_routing from url_alias table
         self.cursor.execute("SELECT * FROM url_alias")
@@ -331,7 +331,7 @@ def main(argv):
     try:
         try:
             opts, args = getopt.gnu_getopt(argv, 'hd:p:u:n:l:a:v', 
-                                           ["help", "dbhostname=", "dbport=", "dbuserpwd=", "dbname=", "uri=", "articles="])
+                                           ["help", "dbhostname=", "dbport=", "dbuserpwd=", "dbname=", "url=", "articles="])
         except getopt.error, msg:
             raise UsageError(msg)
 
@@ -340,7 +340,7 @@ def main(argv):
         dbname = 'drupal'
         dbuser = ''
         dbpasswd = ''
-        app_uri = 'http://localhost:8080'
+        app_url = 'http://localhost:8080'
         num_articles = None
         
         # option processing
@@ -365,13 +365,13 @@ def main(argv):
                 dbname = value
             if option in ("-a", "--articles"):
                 num_articles = string.atoi(value)
-            if option in ("-l", "--uri"):
-                print "Got uri:", value
-                app_uri = value
-                if app_uri[:4] != 'http':
-                    app_uri = 'http://' + app_uri
-                if app_uri[-1] == '/':
-                    app_uri = app_uri[:-1]
+            if option in ("-l", "--url"):
+                print "Got url:", value
+                app_url = value
+                if app_url[:4] != 'http':
+                    app_url = 'http://' + app_url
+                if app_url[-1] == '/':
+                    app_url = app_url[:-1]
 
         if len(args) < 2:
             raise UsageError("Please specify the authentication cookie string as first argument.")
@@ -389,7 +389,7 @@ def main(argv):
                                         dbhostname=dbhostname,
                                         dbport=dbport,
                                         dbname=dbname,
-                                        app_uri=app_uri)
+                                        app_url=app_url)
             converter.go(num_articles)
             converter.close()
     
