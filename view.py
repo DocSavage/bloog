@@ -59,6 +59,8 @@ def get_view_file(handler, params={}):
      <verb> = HTTP verb, e.g. GET or POST
      <ext> = html, xml, etc.
     Only <handler> and <ext> are required.
+    Properties 'module_name' and 'handler_name' can be passed in params to override the 
+     current module/handler name.
     """
     desired_ext = 'html'
     if params.has_key('ext'):
@@ -70,6 +72,16 @@ def get_view_file(handler, params={}):
     if nmatch:
         module_name = nmatch.group(1).lower()
         handler_name = nmatch.group(2).lower()
+    else:
+        module_name = None
+        handler_name = None
+
+    if params.has_key('module_name'):
+        module_name = params['module_name']
+    if params.has_key('handler_name'):
+        handler_name = params['handler_name']
+
+    if module_name and handler_name:
         filename_stem = 'views/' + module_name + '/' + handler_name
         possible_roles = []
         if users.is_current_user_admin():
@@ -86,7 +98,7 @@ def get_view_file(handler, params={}):
             template_filename = filename_stem + role + desired_ext
             if os.path.exists(template_filename):
                 return template_filename
-        return 'views/404.html'
+    return 'views/404.html'
 
 class ViewPage(object):
     def __init__(self, cache_time=None):
@@ -119,7 +131,7 @@ class ViewPage(object):
         return template.render(template_file, template_params, debug=config.DEBUG)
 
     # TODO: Should use a decorate on methods to determine which ones get cached, or perhaps let this happen at lower level
-    def render_or_get_cache(self, handler, template_file, template_params):
+    def render_or_get_cache(self, handler, template_file, template_params={}):
         """Checks if there's a non-stale cached version of this view, and if so, return it."""
         if self.cache_time:
             # See if there's a cache within time.
@@ -130,7 +142,7 @@ class ViewPage(object):
             global VIEW_CACHE
             key = handler.request.url + str(users.get_current_user() != None) + str(users.is_current_user_admin())
             if not VIEW_CACHE.has_key(key):
-                logging.debug("Couldn't find a cache for %s", template_file)
+                logging.debug("Couldn't find a cache for %s", key)
                 VIEW_CACHE[key] = {
                     'time': 0.0,
                     'output': ''

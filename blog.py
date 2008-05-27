@@ -157,10 +157,12 @@ def process_comment_submission(handler, article):
 
 class NotFoundHandler(webapp.RequestHandler):
     def get(self):
+        self.error(404)
         view.ViewPage(cache_time=36000).render(self)
 
 class UnauthorizedHandler(webapp.RequestHandler):
     def get(self):
+        self.error(403)
         view.ViewPage(cache_time=36000).render(self)
 
 class RootHandler(restful.Controller):
@@ -209,7 +211,9 @@ class PageHandler(restful.Controller):
 
         # This didn't fall into any of our pages or aliases.
         # Page not found.
-        self.redirect('/404.html')
+        #   could do --> self.redirect('/404.html')
+        self.error(404)
+        view.ViewPage(cache_time=36000).render(self, {'module_name': 'blog', 'handler_name': 'notfound'})
 
     @authorized.role("user")
     def post(self, path):
