@@ -247,24 +247,17 @@
         {% block ajax_search_api %}
         <script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAArkJQygN7d9x7IYE-cqa7pxRplEICxsDn12H6XOoG8NhvPWEaehQp5DHoozVgJSYne7zLwa0go_ST_g">
         </script>
+        <style type="text/css">
+        #searchWrap .gsc-control { width: 250px; }
+        </style>
         <script type="text/javascript">
             google.load("search", "1");
             function searchInitialize() {
-                // var searchControl = new google.search.SearchControl();
-                var searchDiv = document.getElementById("searchcontrol");
-                this.searchForm = new google.search.SearchForm(false, searchDiv);
-                this.searchForm.setOnSubmitCallback(this, this.newSearch);
-                // called on form submit
-                this.newSearch = function(form) {
-                    if (form.input.value) {
-                        this.searchControl.execute(form.input.value);
-                    }
-                    return false;
-                }
+                var searchControl = new google.search.SearchControl();
                 var bloogSearch = new google.search.WebSearch();
                 bloogSearch.setUserDefinedLabel("{{ blog.title }}");
                 bloogSearch.setUserDefinedClassSuffix("siteSearch");
-                bloogSearch.setSiteRestriction("www.billkatz.com")
+                bloogSearch.setSiteRestriction("{{ blog.root_url }}")
                 searchControl.addSearcher(bloogSearch);
                 searchControl.draw(document.getElementById("searchcontrol"));
             }
