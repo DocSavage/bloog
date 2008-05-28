@@ -52,15 +52,16 @@ HANDLER_PATTERN = re.compile("<class '([^\.]*)\.(\w+)Handler'>")
 
 def get_view_file(handler, params={}):
     """
-    Looks for presence of template files with priority given to HTTP method (verb) and role.
+    Looks for presence of template files with priority given to 
+     HTTP method (verb) and role.
     Full filenames are <handler>.<role>.<verb>.<ext> where
      <handler> = lower-case handler name
      <role> = role of current user
      <verb> = HTTP verb, e.g. GET or POST
      <ext> = html, xml, etc.
     Only <handler> and <ext> are required.
-    Properties 'module_name' and 'handler_name' can be passed in params to override the 
-     current module/handler name.
+    Properties 'module_name' and 'handler_name' can be passed in 
+     params to override the current module/handler name.
     """
     desired_ext = 'html'
     if params.has_key('ext'):
@@ -91,13 +92,13 @@ def get_view_file(handler, params={}):
         possible_roles.append('.')
         # Check possible template file names in order of decreasing priority
         for role in possible_roles:
-            template_filename = filename_stem + role + verb + '.' + desired_ext
-            if os.path.exists(template_filename):
-                return template_filename
+            filename = filename_stem + role + verb + '.' + desired_ext
+            if os.path.exists(filename):
+                return filename
         for role in possible_roles:
-            template_filename = filename_stem + role + desired_ext
-            if os.path.exists(template_filename):
-                return template_filename
+            filename = filename_stem + role + desired_ext
+            if os.path.exists(filename):
+                return filename
     return 'views/404.html'
 
 class ViewPage(object):
@@ -115,8 +116,8 @@ class ViewPage(object):
         scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
         if not NUM_FULL_RENDERS.has_key(path):
             NUM_FULL_RENDERS[path] = 0
-        NUM_FULL_RENDERS[path] += 1         # This lets us see % of cached views in /admin/timings (see timings.py)
-
+        NUM_FULL_RENDERS[path] += 1     # This lets us see % of cached views
+                                        # in /admin/timings (see timings.py)
         template_params = {
             "current_url": url,
             "bloog_version": bloog_version,
@@ -128,19 +129,24 @@ class ViewPage(object):
         }
         template_params.update(config.page or config.default_page)
         template_params.update(more_params)
-        return template.render(template_file, template_params, debug=config.DEBUG)
+        return template.render(template_file, template_params,
+                               debug=config.DEBUG)
 
-    # TODO: Should use a decorate on methods to determine which ones get cached, or perhaps let this happen at lower level
     def render_or_get_cache(self, handler, template_file, template_params={}):
-        """Checks if there's a non-stale cached version of this view, and if so, return it."""
+        """Checks if there's a non-stale cached version of this view, 
+           and if so, return it."""
         if self.cache_time:
             # See if there's a cache within time.
-            # The cache key suggests a problem with the url <-> function mapping, because a significant advantage of RESTful
-            #  design is that a distinct url gets you a distinct, cacheable resource.  If we have to include states like
-            #  "user?" and "admin?", then it suggests these flags should be in url as well.
+            # The cache key suggests a problem with the url <-> function 
+            #  mapping, because a significant advantage of RESTful design 
+            #  is that a distinct url gets you a distinct, cacheable 
+            #  resource.  If we have to include states like "user?" and 
+            #  "admin?", then it suggests these flags should be in url.               
             # TODO - Think about the above with respect to caching.
             global VIEW_CACHE
-            key = handler.request.url + str(users.get_current_user() != None) + str(users.is_current_user_admin())
+            stateful_flags = str(users.get_current_user() != None) + \
+                             str(users.is_current_user_admin())
+            key = handler.request.url + stateful_flags
             if not VIEW_CACHE.has_key(key):
                 logging.debug("Couldn't find a cache for %s", key)
                 VIEW_CACHE[key] = {
@@ -150,7 +156,7 @@ class ViewPage(object):
             elif VIEW_CACHE[key]['time'] > time.time() - self.cache_time:
                 logging.debug("Using cache for %s", template_file)
                 return VIEW_CACHE[key]['output']
-                
+
             output = self.full_render(handler, template_file, template_params)
             VIEW_CACHE[key]['output'] = output
             VIEW_CACHE[key]['time'] = time.time()
@@ -160,7 +166,8 @@ class ViewPage(object):
         
     def render(self, handler, params={}):
         """
-        Can pass overriding parameters within dict.  These parameters can include:
+        Can pass overriding parameters within dict.  These parameters can 
+        include:
             'ext': 'xml' (or any other format type)
         """
         view_file = get_view_file(handler, params)
@@ -171,7 +178,9 @@ class ViewPage(object):
             output = self.render_or_get_cache(handler, template_file, params)
             handler.response.out.write(output)
         else:
-            handler.response.out.write("<h3>Couldn't get a view file -> " + view_file + "</h3>")
+            handler.response.out.write(
+                "<h3>Couldn't get a view file -> " + view_file + "</h3>"
+            )
 
     def render_query(self, handler, model_name, query, params={}):
         """
