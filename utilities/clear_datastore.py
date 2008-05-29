@@ -124,7 +124,7 @@ class HttpRESTClient(object):
                 reason = response.reason
                 content = response.read()
                 tuple_headers = response.getheaders()
-                print('Received response code %d: %s\n%s' % 
+                print('Received response code %d: %s\n%s' % \
                       (status, reason, content))
                 success = (status == httplib.OK)
             finally:

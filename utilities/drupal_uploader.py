@@ -169,7 +169,7 @@ class HttpRESTClient(object):
             'Content-Length': len(body),
             'Cookie': self.auth_cookie
         }
-        status, reason, content, tuple_headers = 
+        status, reason, content, tuple_headers = \
             self.do_request(url, 'POST', headers, body)
         # Our app expects POSTs to return a url link with particular format.
         # This successful response syntax can be found in blog.py, 
@@ -276,7 +276,7 @@ class DrupalConverter(object):
                     article['format'] = 'html'
                     published = datetime.datetime.fromtimestamp(row[5])
                     article['published'] = str(published)
-                    article['updated'] =
+                    article['updated'] = \
                         str(datetime.datetime.fromtimestamp(row[6]))
                     # Determine where to POST this article if it's a 
                     # page or a blog entry
@@ -289,13 +289,13 @@ class DrupalConverter(object):
                     if num_articles and len(articles) >= num_articles:
                         break
                 else:
-                    print "Rejected article with title (", 
+                    print "Rejected article with title (", \
                           article['title'], ") because bad format."
 
         for article in articles:
             # Add tags to each article by looking at term_node table
             article['tags'] = ''
-            sql = "SELECT d.tid FROM term_data d, term_node n "
+            sql = "SELECT d.tid FROM term_data d, term_node n " \
                   "WHERE d.tid = n.tid AND n.nid = " + \
                   str(article['legacy_id'])
             self.cursor.execute(sql)
@@ -313,7 +313,7 @@ class DrupalConverter(object):
             # or blog month (if "blog" entry)
             print('Posting article with title "%s" to %s' % 
                   (article['title'], article['post_url']))
-            entry_permalink, entry_type = 
+            entry_permalink, entry_type = \
                 self.webserver.post(self.app_url + article['post_url'],
                                     article)
             if article['legacy_id']:
@@ -323,8 +323,8 @@ class DrupalConverter(object):
 
             # Store comments associated with the article
             comment_posting_url = self.app_url + '/' + entry_permalink
-            sql = "SELECT subject, comment, timestamp, thread, name, mail, "
-                  "homepage FROM comments WHERE nid = " + \ 
+            sql = "SELECT subject, comment, timestamp, thread, name, mail, " \
+                  "homepage FROM comments WHERE nid = " + \
                   str(article['legacy_id'])
             self.cursor.execute(sql)
             rows = self.cursor.fetchall()
@@ -340,7 +340,7 @@ class DrupalConverter(object):
                     'email': clean_singleline(row[5]),
                     'homepage': clean_singleline(row[6])
                 }
-                print "Posting comment '" + row[0] + "' to",
+                print "Posting comment '" + row[0] + "' to", \
                       comment_posting_url
                 self.webserver.post(comment_posting_url, comment)
             
@@ -354,7 +354,7 @@ class DrupalConverter(object):
             if nmatch:
                 legacy_id = string.atoi(nmatch.group(1))
                 if redirect.has_key(legacy_id):
-                    print >>f, "    '%s': '%s'," % 
+                    print >>f, "    '%s': '%s'," % \
                                (row[2], redirect[legacy_id])
         print >>f, "}"
         f.close()
@@ -394,9 +394,9 @@ def main(argv):
                     dbuser = userpwd[0]
                     dbpasswd = userpwd[1]
                 except:
-                    print "-u, --dbuserpwd should be followed by "
-                          "'username:passwd' with colon separating required "
-                          "information"
+                    print "-u, --dbuserpwd should be followed by " \
+                          "'username:passwd' with colon separating " \
+                          "required information"
             if option in ("-n", "--dbname"):
                 dbname = value
             if option in ("-a", "--articles"):

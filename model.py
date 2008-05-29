@@ -71,9 +71,9 @@ class Article(db.Model):
         return self.updated.strftime('%Y-%m-%dT%H:%M:%SZ')
 
     def is_big(self):
-        if len(self.html) > 2000 or 
-           '<img' in self.html or 
-           '<code>' in self.html or 
+        if len(self.html) > 2000 or \
+           '<img' in self.html or \
+           '<code>' in self.html or \
            '<pre>' in self.html:
             return True
         else:
