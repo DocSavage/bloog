@@ -6,11 +6,11 @@
 # Copyright (c) 2008 William T. Katz
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
+# of this software and associated documentation files (the "Software"), to 
+# deal in the Software without restriction, including without limitation 
+# the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+# and/or sell copies of the Software, and to permit persons to whom the 
+# Software is furnished to do so, subject to the following conditions:
 # 
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
@@ -19,9 +19,10 @@
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+# DEALINGS IN THE SOFTWARE.
+
 
 # --- Significant portions of the code was taken from Google App Engine SDK
 # --- which is licensed under Apache 2.0
@@ -62,14 +63,17 @@ import socket
 import string
 
 help_message = '''
-First argument must be an authentication cookie that can be cut & pasted after logging in
-with a browser.  Cookies can be easily viewed by using the Web Developer plugin with Firefox.
+First argument must be an authentication cookie that can be cut & pasted after
+logging in with a browser.  Cookies can be easily viewed by using the Web
+Developer plugin with Firefox.
 
-For example, for uploading data into the local datastore, you'd do something like this:
+For example, for uploading data into the local datastore, you'd do something
+like this:
 
 clear_datastore.py 'dev_appserver_login="test@example.com:True"'
 
-For uploading data into a Google AppEngine-hosted app, the cookie would begin with ACSID:
+For uploading data into a Google AppEngine-hosted app, the cookie would begin
+with ACSID:
 
 clear_datastore.py 'ACSID=AJXUWfE-aefkae...'
 
@@ -120,14 +124,15 @@ class HttpRESTClient(object):
                 reason = response.reason
                 content = response.read()
                 tuple_headers = response.getheaders()
-                print('Received response code %d: %s\n%s' % (status, reason, content))
+                print('Received response code %d: %s\n%s' % 
+                      (status, reason, content))
                 success = (status == httplib.OK)
             finally:
                 connection.close()
         except (IOError, httplib.HTTPException, socket.error), e:
           print('Encountered exception accessing HTTP server: %s', e)
           raise HTTPConnectError(e)
-          
+
         return success
 
 
@@ -156,7 +161,8 @@ def main(argv):
                     app_url = app_url[:-1]
 
         if len(args) < 2:
-            raise UsageError("Please specify the authentication cookie string as first argument.")
+            raise UsageError("Please specify the authentication cookie "
+                             "string as first argument.")
         else:
             auth_cookie = args[1]
 

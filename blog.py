@@ -3,11 +3,11 @@
 # Copyright (c) 2008 William T. Katz
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
+# of this software and associated documentation files (the "Software"), to 
+# deal in the Software without restriction, including without limitation 
+# the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+# and/or sell copies of the Software, and to permit persons to whom the 
+# Software is furnished to do so, subject to the following conditions:
 # 
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
@@ -16,9 +16,9 @@
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+# DEALINGS IN THE SOFTWARE.
 
 """A simple RESTful blog/homepage app for Google App Engine
 
@@ -64,7 +64,8 @@ import legacy_aliases   # This can be either manually created or
 # Functions to generate permalinks depending on type of article
 permalink_funcs = {
     'page': lambda title,date: get_friendly_url(title),
-    'blog': lambda title,date: str(date.year) + "/" + str(date.month) + "/" + get_friendly_url(title)
+    'blog': lambda title,date: str(date.year) + "/" + str(date.month) + \
+                               "/" + get_friendly_url(title)
 }
 
 # Module methods to handle incoming data
@@ -75,7 +76,8 @@ def get_datetime(time_string):
     
 def get_tags(tag_string):
     if tag_string:
-        return [db.Category(s.strip()) for s in tag_string.split(",") if s != '']
+        return [db.Category(s.strip()) for s in tag_string.split(",") 
+                if s != '']
     return None
     
 def get_friendly_url(title):
@@ -103,8 +105,7 @@ def process_article_submission(handler, article_type):
          ('updated', get_datetime),
          ('tags', get_tags),
          ('html', get_html, 'body', 'format'),
-         ('permalink', permalink_funcs[article_type], 'title', 'published')
-        ])
+         ('permalink', permalink_funcs[article_type], 'title', 'published')])
     
     article = model.Article(
         permalink = property_hash['permalink'],
@@ -336,7 +337,8 @@ class MonthHandler(restful.Controller):
         
 class ArticleHandler(restful.Controller):
     def get(self, year, month, perm_stem):
-        logging.debug("ArticleHandler#get for year %s, month %s, and perm_link %s", 
+        logging.debug("ArticleHandler#get for year %s, "
+                      "month %s, and perm_link %s", 
                       year, month, perm_stem)
         article = db.Query(model.Article). \
                      filter('permalink =', 
@@ -368,7 +370,8 @@ class ArticleHandler(restful.Controller):
     def post(self, year, month, perm_stem):
         logging.debug("Adding comment for article %s", self.request.path)
         permalink = year + '/' + month + '/' + perm_stem
-        article = db.Query(model.Article).filter('permalink =', permalink).get()
+        article = db.Query(model.Article). \
+                     filter('permalink =', permalink).get()
         process_comment_submission(self, article)
 
 class AtomHandler(webapp.RequestHandler):

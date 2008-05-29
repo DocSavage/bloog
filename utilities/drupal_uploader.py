@@ -6,11 +6,11 @@
 # Copyright (c) 2008 William T. Katz
 # 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
+# of this software and associated documentation files (the "Software"), to 
+# deal in the Software without restriction, including without limitation 
+# the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+# and/or sell copies of the Software, and to permit persons to whom the 
+# Software is furnished to do so, subject to the following conditions:
 # 
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
@@ -19,9 +19,10 @@
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
 # AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+# DEALINGS IN THE SOFTWARE.
+
 
 # --- Significant portions of the code was taken from Google App Engine SDK
 # --- which is licensed under Apache 2.0
@@ -66,14 +67,17 @@ import MySQLdb
 from external.libs import textile
 
 help_message = '''
-First argument must be an authentication cookie that can be cut & pasted after logging in
-with a browser.  Cookies can be easily viewed by using the Web Developer plugin with Firefox.
+First argument must be an authentication cookie that can be cut & pasted after
+logging in with a browser.  Cookies can be easily viewed by using the Web
+Developer plugin with Firefox.
 
-For example, for uploading data into the local datastore, you'd do something like this:
+For example, for uploading data into the local datastore, you'd do something
+like this:
 
 drupal_uploader.py 'dev_appserver_login="test@example.com:True"'
 
-For uploading data into a Google AppEngine-hosted app, the cookie would begin with ACSID:
+For uploading data into a Google AppEngine-hosted app, the cookie would begin
+with ACSID:
 
 drupal_uploader.py 'ACSID=AJXUWfE-aefkae...'
 
@@ -139,9 +143,11 @@ class HttpRESTClient(object):
                 reason = response.reason
                 content = response.read()
                 tuple_headers = response.getheaders()
-                print('Received response code %d: %s\n%s' % (status, reason, content))
+                print('Received response code %d: %s\n%s' % 
+                      (status, reason, content))
                 if status != httplib.OK:
-                    raise RequestError('Request error, code %d: %s\n%s' % (status, reason, content))
+                    raise RequestError('Request error, code %d: %s\n%s' % 
+                                       (status, reason, content))
                 return status, reason, content, tuple_headers
             finally:
                 connection.close()
@@ -163,12 +169,16 @@ class HttpRESTClient(object):
             'Content-Length': len(body),
             'Cookie': self.auth_cookie
         }
-        status, reason, content, tuple_headers = self.do_request(url, 'POST', headers, body)
+        status, reason, content, tuple_headers = 
+            self.do_request(url, 'POST', headers, body)
         # Our app expects POSTs to return a url link with particular format.
-        # This successful response syntax can be found in blog.py, successful_post_response()
-        url_match = re.match('<a href="([\w\-/]+)">(\w+) successfully stored</a>', content)
+        # This successful response syntax can be found in blog.py, 
+        # successful_post_response()
+        url_match = re.match('<a href="([\w\-/]+)">(\w+) '
+                             'successfully stored</a>', content)
         if not url_match:
-            raise RequestError('Unexpected response from web app: %s, %s, %s' % (status, reason, content))
+            raise RequestError('Unexpected response from web app: '
+                               '%s, %s, %s' % (status, reason, content))
         entry_url = url_match.group(1)
         entry_type = url_match.group(2)
         return entry_url, entry_type
@@ -195,7 +205,8 @@ class DrupalConverter(object):
         "textile"
     ]
 
-    def __init__(self, auth_cookie, dbuser, dbpasswd, dbhostname, dbport, dbname, app_url):
+    def __init__(self, auth_cookie, dbuser, dbpasswd, dbhostname, 
+                dbport, dbname, app_url):
         self.webserver = HttpRESTClient(auth_cookie)
         self.app_url = app_url
 
@@ -220,9 +231,11 @@ class DrupalConverter(object):
             if tmatch:
                 return textile.textile(tmatch.group(1))
 
-        # Because Drupal textile formatting allows use of [textile][/textile] delimeters, remove them.
+        # Because Drupal textile formatting allows use of [textile][/textile] 
+        # delimeters, remove them.
         if markup_type == 'textile':
-            pattern = re.compile('\[textile\](.*)\[/textile\]', re.MULTILINE | re.IGNORECASE | re.DOTALL)
+            pattern = re.compile('\[textile\](.*)\[/textile\]', 
+                                 re.MULTILINE | re.IGNORECASE | re.DOTALL)
             return re.sub(pattern, repl, body)
         if markup_type == 'filtered html':
             return re.sub('\n', '<br />', body)
@@ -255,27 +268,36 @@ class DrupalConverter(object):
                 article['format'] = None
                 if row[14] >= 0 and row[14] <= 4:
                     cur_format = self.drupal_format_description[row[14]]
-                    article['body'] = self.get_html(raw_body=row[11], markup_type=cur_format)
+                    article['body'] = self.get_html(raw_body=row[11], 
+                                                    markup_type=cur_format)
                     article['html'] = article['body']
-                    article['format'] = 'html'   # Because Drupal lets you intermix textile with other markup, just convert it all to HTML
+                    # Because Drupal lets you intermix textile with other 
+                    # markup, just convert it all to HTML
+                    article['format'] = 'html'
                     published = datetime.datetime.fromtimestamp(row[5])
                     article['published'] = str(published)
-                    article['updated'] = str(datetime.datetime.fromtimestamp(row[6]))
-                    # Determine where to POST this article if it's a page or a blog entry
+                    article['updated'] =
+                        str(datetime.datetime.fromtimestamp(row[6]))
+                    # Determine where to POST this article if it's a 
+                    # page or a blog entry
                     if ntype == 'blog':
-                        article['post_url'] = '/' + str(published.year) + "/" + str(published.month) + "/"
+                        article['post_url'] = '/' + str(published.year) + \
+                                              '/' + str(published.month) + "/"
                     else:
                         article['post_url'] = '/'
                     articles.append(article)
                     if num_articles and len(articles) >= num_articles:
                         break
                 else:
-                    print "Rejected article with title (", article['title'], ") because bad format."
+                    print "Rejected article with title (", 
+                          article['title'], ") because bad format."
 
         for article in articles:
             # Add tags to each article by looking at term_node table
             article['tags'] = ''
-            sql = "SELECT d.tid FROM term_data d, term_node n WHERE d.tid = n.tid AND n.nid = " + str(article['legacy_id'])
+            sql = "SELECT d.tid FROM term_data d, term_node n "
+                  "WHERE d.tid = n.tid AND n.nid = " + \
+                  str(article['legacy_id'])
             self.cursor.execute(sql)
             rows = self.cursor.fetchall()
             for row in rows:
@@ -287,20 +309,28 @@ class DrupalConverter(object):
                     if tid:
                         article['tags'] += ','
 
-            # Store the article by posting to either root (if "page") or blog month (if "blog" entry)
-            print('Posting article with title "%s" to %s' % (article['title'], article['post_url']))
-            entry_permalink, entry_type = self.webserver.post(self.app_url + article['post_url'], article)
+            # Store the article by posting to either root (if "page") 
+            # or blog month (if "blog" entry)
+            print('Posting article with title "%s" to %s' % 
+                  (article['title'], article['post_url']))
+            entry_permalink, entry_type = 
+                self.webserver.post(self.app_url + article['post_url'],
+                                    article)
             if article['legacy_id']:
                 redirect[article['legacy_id']] = entry_permalink
-            print('Received response from Bloog that %s entry successfully stored at %s' % (entry_type, entry_permalink))
+            print('Received response from Bloog that %s entry '
+                  'successfully stored at %s' % (entry_type, entry_permalink))
 
             # Store comments associated with the article
             comment_posting_url = self.app_url + '/' + entry_permalink
-            sql = "SELECT subject, comment, timestamp, thread, name, mail, homepage FROM comments WHERE nid = " + str(article['legacy_id'])
+            sql = "SELECT subject, comment, timestamp, thread, name, mail, "
+                  "homepage FROM comments WHERE nid = " + \ 
+                  str(article['legacy_id'])
             self.cursor.execute(sql)
             rows = self.cursor.fetchall()
             for row in rows:
-                # Store comment associated with article by POST to article entry url
+                # Store comment associated with article by POST to 
+                # article entry url
                 comment = {
                     'title': clean_singleline(row[0]),
                     'body': clean_multiline(row[1]),
@@ -310,7 +340,8 @@ class DrupalConverter(object):
                     'email': clean_singleline(row[5]),
                     'homepage': clean_singleline(row[6])
                 }
-                print "Posting comment '" + row[0] + "' to", comment_posting_url
+                print "Posting comment '" + row[0] + "' to",
+                      comment_posting_url
                 self.webserver.post(comment_posting_url, comment)
             
         # create_python_routing from url_alias table
@@ -323,7 +354,8 @@ class DrupalConverter(object):
             if nmatch:
                 legacy_id = string.atoi(nmatch.group(1))
                 if redirect.has_key(legacy_id):
-                    print >>f, "    '%s': '%s'," % (row[2], redirect[legacy_id])
+                    print >>f, "    '%s': '%s'," % 
+                               (row[2], redirect[legacy_id])
         print >>f, "}"
         f.close()
 
@@ -331,7 +363,9 @@ def main(argv):
     try:
         try:
             opts, args = getopt.gnu_getopt(argv, 'hd:p:u:n:l:a:v', 
-                                           ["help", "dbhostname=", "dbport=", "dbuserpwd=", "dbname=", "url=", "articles="])
+                                           ["help", "dbhostname=", "dbport=",   
+                                            "dbuserpwd=", "dbname=", "url=", 
+                                            "articles="])
         except getopt.error, msg:
             raise UsageError(msg)
 
@@ -360,7 +394,9 @@ def main(argv):
                     dbuser = userpwd[0]
                     dbpasswd = userpwd[1]
                 except:
-                    print "-u, --dbuserpwd should be followed by 'username:passwd' with colon separating required information"
+                    print "-u, --dbuserpwd should be followed by "
+                          "'username:passwd' with colon separating required "
+                          "information"
             if option in ("-n", "--dbname"):
                 dbname = value
             if option in ("-a", "--articles"):
@@ -374,7 +410,8 @@ def main(argv):
                     app_url = app_url[:-1]
 
         if len(args) < 2:
-            raise UsageError("Please specify the authentication cookie string as first argument.")
+            raise UsageError("Please specify the authentication cookie string"
+                             " as first argument.")
         else:
             auth_cookie = args[1]
 
