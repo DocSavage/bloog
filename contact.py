@@ -40,7 +40,8 @@ RANDOM_TOKEN = '08yzek30krn4l' + config.blog['root_url']
 
 class ContactHandler(restful.Controller):
     def get(self):
-        view.ViewPage(cache_time=300). \
+        # Don't use cache since we want to get current time for each post.
+        view.ViewPage(cache_time=0). \
              render(self, {'token': RANDOM_TOKEN, 'curtime': time.time()})
 
     def post(self):
