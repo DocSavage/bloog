@@ -20,15 +20,14 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
 # DEALINGS IN THE SOFTWARE.
 
-import pickle
-
 from google.appengine.ext import db
-from google.appengine.ext import search
 import logging
 import config
 
 # The below was pulled due to computational quota issues on large posts.
 # Works with dev server but not after uploading to cloud.
+
+# from google.appengine.ext import search
 # class Article(search.SearchableModel):
 
 class Article(db.Model):
@@ -56,9 +55,11 @@ class Article(db.Model):
     # Examples include relevant (per article) links and associated 
     #  Amazon items.
     def set_associated_data(self, data):
+        import pickle
         self.assoc_dict = pickle.dumps(data)
 
     def get_associated_data(self):
+        import pickle
         return pickle.loads(self.assoc_dict)
 
     def full_permalink(self):

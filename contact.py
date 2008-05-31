@@ -28,13 +28,13 @@ TODO: Make this an Ajax form with built-in captcha.
 """
 __author__ = 'William T. Katz'
 
-from google.appengine.api import mail
-
 import restful
 import view
 import config
 import time
 import string
+
+import logging
 
 RANDOM_TOKEN = '08yzek30krn4l' + config.blog['root_url']
 
@@ -45,8 +45,12 @@ class ContactHandler(restful.Controller):
              render(self, {'token': RANDOM_TOKEN, 'curtime': time.time()})
 
     def post(self):
+        from google.appengine.api import mail
+
         if self.request.get('token') != RANDOM_TOKEN or \
            time.time() - string.atof(self.request.get('curtime')) < 2.0:
+            logging.info("Aborted contact mailing because form submission "
+                          "was less than 2 seconds.")
             self.error(403)
 
         reply_to = self.request.get('author') + ' <' + \

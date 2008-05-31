@@ -41,16 +41,12 @@ import datetime
 import string
 import re
 import os
-import urllib
 
 import logging
 
 from google.appengine.ext import webapp
 from google.appengine.api import users
 from google.appengine.ext import db
-from google.appengine.ext import search
-
-from external.libs import textile
 
 import restful
 import authorized
@@ -86,6 +82,8 @@ def get_friendly_url(title):
                          re.sub('\s+', '-', title.strip())))
 
 def get_html(body, markup_type):
+    from external.libs import textile
+
     if markup_type == 'textile':
         return textile.textile(str(body))
     return body
