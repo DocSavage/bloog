@@ -99,7 +99,7 @@ def get_view_file(handler, params={}):
             filename = filename_stem + role + desired_ext
             if os.path.exists(filename):
                 return filename
-    return 'views/404.html'
+    return 'views/blog/notfound.html'
 
 class ViewPage(object):
     def __init__(self, cache_time=None):
