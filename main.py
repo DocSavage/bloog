@@ -38,39 +38,36 @@ import config
 # TODO: Add global that caches url aliases read in from YAML file
 
 # TODO: Global that stores cached regexs for routing
-# Each imported handler can check if its routes are already present, and if not, it adds them.
-# This might already be done by webapp.WSGIApplication, in which case we should look for hook
-# to add routes within modules.
+# Each imported handler can check if its routes are already present, 
+#  and if not, it adds them.
+# This might already be done by webapp.WSGIApplication, 
+#  in which case we should look for hook to add routes within modules.
 ROUTES = []
 
-# TODO: Add caching for error pages. Make sure the error pages doesn't reuse things that shouldn't
-# be reused across requests, like user logins.  Caching error pages is probably a big win because
-# of spam robots.
+# TODO: Add caching for error pages. 
+# Make sure the error pages doesn't reuse things that shouldn't
+# be reused across requests, like user logins.  Caching error pages 
+# is probably a big win because of spam robots.
 
 def main():
     
-    url, timing_started = timings.start_run()
-
-    logging.debug("Entered main() on url (%s)" % url)
     application = webapp.WSGIApplication(
-                                       [('/*$', blog.RootHandler),
-                                        ('/403.html', blog.UnauthorizedHandler),
-                                        ('/404.html', blog.NotFoundHandler),
-                                        ('/([12]\d\d\d)/*$', blog.YearHandler),
-                                        ('/([12]\d\d\d)/(\d|[01]\d)/*$', blog.MonthHandler),
-                                        ('/([12]\d\d\d)/(\d|[01]\d)/([-\w]+)/*$', blog.ArticleHandler),
-                                        ('/admin/timings/*$', timings.TimingHandler),
-                                        ('/search', blog.SearchHandler),
-                                        ('/contact/*$', contact.ContactHandler),
-                                        ('/tag/(.*)', blog.TagHandler),
-                                        (config.blog['master_atom_url'] + '/*$', blog.AtomHandler),
-                                        ('/(.*)', blog.PageHandler)
-                                       ], 
-                                       debug=True)
+                    [('/*$', blog.RootHandler),
+                     ('/403.html', blog.UnauthorizedHandler),
+                     ('/404.html', blog.NotFoundHandler),
+                     ('/([12]\d\d\d)/*$', blog.YearHandler),
+                     ('/([12]\d\d\d)/(\d|[01]\d)/*$', blog.MonthHandler),
+                     ('/([12]\d\d\d)/(\d|[01]\d)/([-\w]+)/*$',          
+                        blog.ArticleHandler),
+                     ('/admin/timings/*$', timings.TimingHandler),
+                     ('/search', blog.SearchHandler),
+                     ('/contact/*$', contact.ContactHandler),
+                     ('/tag/(.*)', blog.TagHandler),
+                     (config.blog['master_atom_url'] + '/*$', 
+                        blog.AtomHandler),
+                     ('/(.*)', blog.PageHandler)], 
+                    debug=True)
     wsgiref.handlers.CGIHandler().run(application)
-
-    if timing_started:
-        timings.stop_run(url)
 
 if __name__ == "__main__":
     main()

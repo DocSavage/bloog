@@ -28,10 +28,6 @@ Copyright (c) 2008 Publishare LLC.  Distributed under MIT License.
 """
 __author__ = "William T. Katz"
 
-# Global that stores timing runs, all keyed to incoming url path
-TIMINGS = {}
-FAILED_TIMINGS = 0
-
 import restful
 import authorized
 import view
@@ -39,85 +35,14 @@ import time
 import urlparse
 import os
 
-def start_run():
-    global TIMINGS, FAILED_TIMINGS
-    try:
-        url = os.environ['PATH_INFO']
-        scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
-
-        if not TIMINGS.has_key(path):
-            TIMINGS[path] = {
-                "runs": 0,
-                "duration": 0.0,
-                "min_time": None,
-                "max_time": None,
-                "mutex_lock": False
-            }
-        timing = TIMINGS[path]
-        if not timing["mutex_lock"]:
-            timing["mutex_lock"] = True
-            timing["start_time"] = time.time()
-            return path, True
-        return path, False
-
-    except:
-        FAILED_TIMINGS += 1
-        return None, False
-
-def stop_run(path):
-    global TIMINGS, FAILED_TIMINGS
-    try:
-        timing = TIMINGS[path]
-        elapsed_time = time.time() - timing["start_time"]
-        timing["duration"] += elapsed_time
-        timing["runs"] += 1
-        if (not timing["min_time"]) or timing["min_time"] > elapsed_time:
-            timing["min_time"] = elapsed_time
-        if (not timing["max_time"]) or timing["max_time"] < elapsed_time:
-            timing["max_time"] = elapsed_time
-        timing["mutex_lock"] = False
-    except:
-        FAILED_TIMINGS += 1
-        if TIMINGS.has_key(path):
-            TIMINGS[path]["mutex_lock"] = False
+from google.appengine.api import memcache
 
 class TimingHandler(restful.Controller):
     @authorized.role("admin")
     def get(self):
-        global TIMINGS, FAILED_TIMINGS
-        stats = []
-        total_time = 0.0
-        avg_speed = 0.0
-        total_calls = 0
-        total_full_renders = 0
-        for key in TIMINGS:
-            full_renders = 0
-            if view.NUM_FULL_RENDERS.has_key(key):
-                full_renders = view.NUM_FULL_RENDERS[key]
-                total_full_renders += full_renders
-            url_timing = TIMINGS[key]
-            if url_timing["runs"] > 0:
-                url_stats = url_timing.copy()
-                url_stats.update({'url': key,
-                                  'avg_speed': url_timing["duration"] / url_timing["runs"],
-                                  'full_renders': full_renders})
-                stats.append(url_stats)
-                total_time += url_timing["duration"]
-                total_calls += url_timing["runs"]
-
-        
-        if total_calls > 0:
-            avg_speed = total_time / total_calls
-        view.ViewPage(cache_time=0).render(self, {"stats": stats, 
-                                                  "failed_timings": FAILED_TIMINGS,
-                                                  "avg_speed": avg_speed,
-                                                  "total_time": total_time, 
-                                                  "total_calls": total_calls,
-                                                  "total_full_renders": total_full_renders})
+        cache_stats = memcache.get_stats()
+        view.ViewPage(cache_time=0).render(self, {"stats": cache_stats})
 
     @authorized.role("admin")
     def delete(self):
-        global TIMINGS, FAILED_TIMINGS
-        TIMINGS = {}
-        FAILED_TIMINGS = 0
-
+        memcache.flush_all()

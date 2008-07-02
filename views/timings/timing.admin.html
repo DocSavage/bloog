@@ -6,39 +6,47 @@
         <div class="postMeta">
             <span class="date">Admin</span>
         </div>
-        <h2>Timing Data</h2>
+        <h2>Caching Stats</h2>
         <div class="entry">
             <p>
-                The following data is in the global cache of the currently selected server <br />
-                ({{ failed_timings }} timings were aborted):
+                The following data is from memcache:
             </p>
             <table id="timingstats">
                 <tr>
-                    <th>url</th>
-                    <th>time/call</th>
-                    <th>min call</th>
-                    <th>max call</th>
-                    <th>total time</th>
-                    <th>calls (uncached)</th>
+                    <th>Stat</th>
+                    <th>Value</th>
+                    <th>Explanation</th>
                 </tr>
                 <tr>
-                    <td>All URLs combined</td>
-                    <td>{{ avg_speed|floatformat:4 }}</td>
-                    <td></td>
-                    <td></td>
-                    <td style="font-weight:bold;">{{ total_time|floatformat:3 }}</td>
-                    <td style="font-weight:bold;">{{ total_calls }} ({{ total_full_renders }})</td>
+                    <td>Hits</td>
+                    <td>{{ stats.hits }}</td>
+                    <td>Number of cache get requests resulting in a cache hit.</td>
                 </tr>
-            {% for urlstat in stats|dictsortreversed:"avg_speed" %}
                 <tr>
-                    <td>{{ urlstat.url }}</td>
-                    <td>{{ urlstat.avg_speed|floatformat:4 }}</td>
-                    <td>{{ urlstat.min_time|floatformat:4 }}</td>
-                    <td>{{ urlstat.max_time|floatformat:4 }}</td>
-                    <td>{{ urlstat.duration|floatformat:3 }}</td>
-                    <td>{{ urlstat.runs }} ({{ urlstat.full_renders }})</td>
+                    <td>Misses</td>
+                    <td>{{ stats.misses }}</td>
+                    <td>Number of cache get requests resulting in a cache miss.</td>
                 </tr>
-            {% endfor %}
+                <tr>
+                    <td>Byte Hits</td>
+                    <td>{{ stats.byte_hits }}</td>
+                    <td>Sum of bytes transferred on get requests. Rolls over to zero on overflow.</td>
+                </tr>
+                <tr>
+                    <td>Items</td>
+                    <td>{{ stats.items }}</td>
+                    <td>Number of key/value pairs in the cache.</td>
+                </tr>
+                <tr>
+                    <td>Bytes</td>
+                    <td>{{ stats.bytes }}</td>
+                    <td>Total size of all items in the cache.</td>
+                </tr>
+                <tr>
+                    <td>Oldest Age</td>
+                    <td>{{ stats.oldest_item_age }}</td>
+                    <td>How long in seconds since the oldest item in the cache was accessed.</td>
+                </tr>
             </table>
         </div>
     </div>

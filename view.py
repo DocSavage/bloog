@@ -27,6 +27,7 @@ import logging
 
 from google.appengine.api import users
 from google.appengine.ext.webapp import template
+from google.appengine.api import memcache
 
 import config
 import copy
@@ -34,18 +35,10 @@ import time
 import urlparse
 import string
 
-bloog_version = "0.5"     # This constant should be in upgradable code files.
-
-# Cache of recent rendered views, keyed by template file and parameters
-VIEW_CACHE = {}
-
-# Recording of non-cached views per url
-NUM_FULL_RENDERS = {}
+bloog_version = "0.6"     # This constant should be in upgradable code files.
 
 def invalidate_cache():
-    global VIEW_CACHE, NUM_FULL_RENDERS
-    VIEW_CACHE = {}
-    NUM_FULL_RENDERS = {}
+    memcache.flush_all()
     
 
 HANDLER_PATTERN = re.compile("<class '([^\.]*)\.(\w+)Handler'>")
@@ -111,13 +104,9 @@ class ViewPage(object):
 
     def full_render(self, handler, template_file, more_params):
         """Render a dynamic page from scatch."""
-        global NUM_FULL_RENDERS, TAGS_NONBREAKING
         url = handler.request.uri
         scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
-        if not NUM_FULL_RENDERS.has_key(path):
-            NUM_FULL_RENDERS[path] = 0
-        NUM_FULL_RENDERS[path] += 1     # This lets us see % of cached views
-                                        # in /admin/timings (see timings.py)
+
         template_params = {
             "current_url": url,
             "bloog_version": bloog_version,
@@ -143,27 +132,19 @@ class ViewPage(object):
             #  resource.  If we have to include states like "user?" and 
             #  "admin?", then it suggests these flags should be in url.               
             # TODO - Think about the above with respect to caching.
-            global VIEW_CACHE
             stateful_flags = str(users.get_current_user() != None) + \
                              str(users.is_current_user_admin())
             key = handler.request.url + stateful_flags
-            if not VIEW_CACHE.has_key(key):
-                logging.debug("Couldn't find a cache for %s", key)
-                VIEW_CACHE[key] = {
-                    'time': 0.0,
-                    'output': ''
-                }
-            elif VIEW_CACHE[key]['time'] > time.time() - self.cache_time:
+            data = memcache.get(key)
+            if data is not None:
                 logging.debug("Using cache for %s", template_file)
-                return VIEW_CACHE[key]['output']
+                return data
 
-            output = self.full_render(handler, template_file, template_params)
-            VIEW_CACHE[key]['output'] = output
-            VIEW_CACHE[key]['time'] = time.time()
-            return output
-            
-        return self.full_render(handler, template_file, template_params)
-        
+        output = self.full_render(handler, template_file, template_params)
+        if self.cache_time:
+            memcache.add(key, output, self.cache_time)
+        return output
+
     def render(self, handler, params={}):
         """
         Can pass overriding parameters within dict.  These parameters can 
