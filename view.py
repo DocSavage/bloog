@@ -162,17 +162,12 @@ class ViewPage(object):
             'ext': 'xml' (or any other format type)
         """
         view_file = get_view_file(handler, params)
-        if view_file:
-            dirname = os.path.dirname(__file__)
-            template_file = os.path.join(dirname, view_file)
-            logging.debug("Using template at %s", template_file)
-            output = self.render_or_get_cache(handler, template_file, params)
-            handler.response.out.write(output)
-        else:
-            logging.debug("Couldn't find a template from %s", handler)
-            handler.response.out.write(
-                "<h3>Couldn't get a view file -> " + view_file + "</h3>"
-            )
+
+        dirname = os.path.dirname(__file__)
+        template_file = os.path.join(dirname, view_file)
+        logging.debug("Using template at %s", template_file)
+        output = self.render_or_get_cache(handler, template_file, params)
+        handler.response.out.write(output)
 
     def render_query(self, handler, model_name, query, params={}):
         """
