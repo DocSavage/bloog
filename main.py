@@ -31,7 +31,7 @@ from google.appengine.ext import webapp
 
 import blog
 import contact
-import timings
+import cache_stats
 import logging
 import config
 
@@ -59,7 +59,7 @@ def main():
                      ('/([12]\d\d\d)/(\d|[01]\d)/*$', blog.MonthHandler),
                      ('/([12]\d\d\d)/(\d|[01]\d)/([-\w]+)/*$',          
                         blog.ArticleHandler),
-                     ('/admin/timings/*$', timings.TimingHandler),
+                     ('/admin/cache_stats/*$', cache_stats.CacheStatsHandler),
                      ('/search', blog.SearchHandler),
                      ('/contact/*$', contact.ContactHandler),
                      ('/tag/(.*)', blog.TagHandler),

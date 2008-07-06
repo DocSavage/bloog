@@ -43,6 +43,15 @@ def invalidate_cache():
 
 HANDLER_PATTERN = re.compile("<class '([^\.]*)\.(\w+)Handler'>")
 
+def to_filename(camelcase_handler_str):
+    filename = camelcase_handler_str[0].lower()
+    for ch in camelcase_handler_str[1:]:
+        if ch in string.uppercase:
+            filename += '_' + ch.lower()
+        else:
+            filename += ch
+    return filename
+
 def get_view_file(handler, params={}):
     """
     Looks for presence of template files with priority given to 
@@ -64,8 +73,8 @@ def get_view_file(handler, params={}):
     class_name = str(handler.__class__)
     nmatch = re.match(HANDLER_PATTERN, class_name)
     if nmatch:
-        module_name = nmatch.group(1).lower()
-        handler_name = nmatch.group(2).lower()
+        module_name = to_filename(nmatch.group(1))
+        handler_name = to_filename(nmatch.group(2))
     else:
         module_name = None
         handler_name = None
@@ -77,6 +86,7 @@ def get_view_file(handler, params={}):
 
     if module_name and handler_name:
         filename_stem = 'views/' + module_name + '/' + handler_name
+        logging.debug("Looking for template with stem %s", filename_stem)
         possible_roles = []
         if users.is_current_user_admin():
             possible_roles.append('.admin.')
@@ -159,6 +169,7 @@ class ViewPage(object):
             output = self.render_or_get_cache(handler, template_file, params)
             handler.response.out.write(output)
         else:
+            logging.debug("Couldn't find a template from %s", handler)
             handler.response.out.write(
                 "<h3>Couldn't get a view file -> " + view_file + "</h3>"
             )

@@ -21,7 +21,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 """
-timings.py
+cache_stats.py
 
 Created by William Katz on 2008-05-04.
 Copyright (c) 2008 Publishare LLC.  Distributed under MIT License.
@@ -37,7 +37,7 @@ import os
 
 from google.appengine.api import memcache
 
-class TimingHandler(restful.Controller):
+class CacheStatsHandler(restful.Controller):
     @authorized.role("admin")
     def get(self):
         cache_stats = memcache.get_stats()
