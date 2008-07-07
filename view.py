@@ -149,10 +149,17 @@ class ViewPage(object):
             if data is not None:
                 logging.debug("Using cache for %s", template_file)
                 return data
+            else:
+                logging.debug("Memcached miss using key: %s", key)
 
         output = self.full_render(handler, template_file, template_params)
         if self.cache_time:
+            logging.debug("Adding %s to memcached (key %s) for %d sec",
+                          template_file, key, self.cache_time)
             memcache.add(key, output, self.cache_time)
+        else:
+            logging.debug("Ignoring caching since cache_time set to %d",
+                          self.cache_time)
         return output
 
     def render(self, handler, params={}):

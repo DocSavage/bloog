@@ -20,13 +20,15 @@ default_blog = {
     "master_atom_url": "/feeds/atom.xml",
     # You can override this default for each page through a handler's call to 
     #  view.ViewPage(cache_time=...)
-    "cache_time": 0,
+    "cache_time": 3600,
 
     # We allow a mapping from some old url pattern to the current query 
     #  using a regex's matched string.  (See PageHandler in blog.py)
     # The example below is for Drupal and should be uncommented if you 
     #  are converting from Drupal
-    # "legacy_id_mapping": { 'regex': 'node/(\d+)', 'query': lambda match_str: db.Query(model.Article).filter('legacy_id =', match_str) }
+    # "legacy_id_mapping": { 'regex': 'node/(\d+)', 
+    #                        'query': lambda match_str:     
+    #    db.Query(model.Article).filter('legacy_id =', match_str) }
 }
 
 default_page = {
