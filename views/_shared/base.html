@@ -102,6 +102,25 @@
                     {% block extra_panel %}
                     {% endblock %}
 
+                    {% if user_is_admin %}
+                    {% block admin_panel %}
+                        <!-- Administrative Console -->
+                        <div class="middle_links">
+                            <h3>Administrative Panel</h3>
+                            <ul>
+                                <li><a href="#">New Article</a>
+                                    - Post a new article (undated)</li>
+                                <li><a href="#">New Blog Entry</a>
+                                    - Post a new blog entry (dated)</li>
+                                <li><a href="/admin/cache_stats">Cache Stats</a>
+                                    - Review memcached statistics</li>
+                                <li><a href="/admin/timings">Timing Stats</a>
+                                    - Review timing statistics</li>
+                            </ul>
+                        </div>
+                    {% endblock %}
+                    {% endif %}
+
                     {% block featuredPages1 %}
                     <div class="middle_links">
                         <h3>{{ featuredMyPages.title }}</h3>

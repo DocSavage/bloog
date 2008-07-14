@@ -1,0 +1,51 @@
+{% extends "../_shared/base.admin.html" %}
+{% block first_column %}
+<div id="twoCol" class="fix">
+    <a name="main"></a>
+    <div class="post">
+        <div class="postMeta">
+            <span class="date">Admin</span>
+        </div>
+        <h2>Timing Data</h2>
+        <div class="entry">
+            <p>
+                The following data is in the global cache of the currently selected server:
+            </p>
+            <table id="timingstats">
+                <tr>
+                    <th>url</th>
+                    <th>time/call</th>
+                    <th>min call</th>
+                    <th>max call</th>
+                    <th>total time</th>
+                    <th>calls (uncached)</th>
+                </tr>
+                <tr>
+                    <td>All URLs combined</td>
+                    <td>{{ avg_speed|floatformat:4 }}</td>
+                    <td></td>
+                    <td></td>
+                    <td style="font-weight:bold;">{{ total_time|floatformat:3 }}</td>
+                    <td style="font-weight:bold;">{{ total_calls }} ({{ total_full_renders }})</td>
+                </tr>
+            {% for urlstat in stats|dictsortreversed:"avg_speed" %}
+                <tr>
+                    <td>{{ urlstat.url }}</td>
+                    <td>{{ urlstat.avg_speed|floatformat:4 }}</td>
+                    <td>{{ urlstat.min_time|floatformat:4 }}</td>
+                    <td>{{ urlstat.max_time|floatformat:4 }}</td>
+                    <td>{{ urlstat.duration|floatformat:3 }}</td>
+                    <td>{{ urlstat.runs }} ({{ urlstat.full_renders }})</td>
+                </tr>
+            {% endfor %}
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block third_column %}
+{% endblock %}
+
+{% block bottom_body %}
+{% endblock %}

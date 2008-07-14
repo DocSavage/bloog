@@ -35,11 +35,13 @@ import time
 import urlparse
 import string
 
-bloog_version = "0.6"     # This constant should be in upgradable code files.
+bloog_version = "0.6"       # Constant should be in upgradable code files.
+
+NUM_FULL_RENDERS = {}       # Cached data for some timings.
 
 def invalidate_cache():
     memcache.flush_all()
-    
+
 
 HANDLER_PATTERN = re.compile("<class '([^\.]*)\.(\w+)Handler'>")
 
@@ -117,6 +119,11 @@ class ViewPage(object):
         url = handler.request.uri
         scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
 
+        global NUM_FULL_RENDERS
+        if not path in NUM_FULL_RENDERS:
+            NUM_FULL_RENDERS[path] = 0
+        NUM_FULL_RENDERS[path] += 1     # This lets us see % of cached views
+                                        # in /admin/timings (see timings.py)
         template_params = {
             "current_url": url,
             "bloog_version": bloog_version,

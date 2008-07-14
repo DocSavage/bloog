@@ -34,6 +34,7 @@ import contact
 import cache_stats
 import logging
 import config
+import timings
 
 # TODO: Add global that caches url aliases read in from YAML file
 
@@ -50,7 +51,7 @@ ROUTES = []
 # is probably a big win because of spam robots.
 
 def main():
-    
+    path = timings.start_run()
     application = webapp.WSGIApplication(
                     [('/*$', blog.RootHandler),
                      ('/403.html', blog.UnauthorizedHandler),
@@ -60,6 +61,7 @@ def main():
                      ('/([12]\d\d\d)/(\d|[01]\d)/([-\w]+)/*$',          
                         blog.ArticleHandler),
                      ('/admin/cache_stats/*$', cache_stats.CacheStatsHandler),
+                     ('/admin/timings/*$', timings.TimingHandler),
                      ('/search', blog.SearchHandler),
                      ('/contact/*$', contact.ContactHandler),
                      ('/tag/(.*)', blog.TagHandler),
@@ -68,6 +70,7 @@ def main():
                      ('/(.*)', blog.PageHandler)], 
                     debug=True)
     wsgiref.handlers.CGIHandler().run(application)
+    timings.stop_run(path)
 
 if __name__ == "__main__":
     main()
