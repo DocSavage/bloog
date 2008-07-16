@@ -353,7 +353,7 @@ class DrupalConverter(object):
             nmatch = re.match('node/(\d+)', row[1])
             if nmatch:
                 legacy_id = string.atoi(nmatch.group(1))
-                if redirect.has_key(legacy_id):
+                if legacy_id in redirect:
                     print >>f, "    '%s': '%s'," % \
                                (row[2], redirect[legacy_id])
         print >>f, "}"

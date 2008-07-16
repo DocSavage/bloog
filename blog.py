@@ -90,7 +90,7 @@ def get_html(body, markup_type):
     
 def fill_optional_properties(obj, property_dict):
     for key, value in property_dict.items():
-        if value and not obj.__dict__.has_key(key):
+        if value and not key in obj.__dict__:
             setattr(obj, key, value)
 
 def process_article_submission(handler, article_type):
@@ -113,14 +113,12 @@ def process_article_submission(handler, article_type):
         html = property_hash['html'],
         published = property_hash['published'],
         updated = property_hash['updated'],
-        format = 'html'     # We are converting everything to HTML from Drupal 
+        format = 'html')    # We are converting everything to HTML from Drupal 
                             # since it can mix formats within articles
-    )
     fill_optional_properties(article, property_hash)
     article.set_associated_data(
         {'relevant_links': handler.request.get('relevant_links'),       
-         'amazon_items': handler.request.get('amazon_items')}
-    )
+         'amazon_items': handler.request.get('amazon_items')})
     article.put()
     restful.successful_post_response(handler, article.permalink, article_type)
     view.invalidate_cache()
@@ -144,23 +142,20 @@ def process_comment_submission(handler, article):
          'title',
          'body',
          'thread',
-         ('published', get_datetime)
-        ])
+         ('published', get_datetime)])
 
     # Compute a comment key by hashing name, email, and body.  
     # If these aren't different, don't bother adding comment.
     comment_key = str(
         hash((property_hash['name'], 
               property_hash['email'], 
-              property_hash['body']))
-    )
+              property_hash['body'])))
 
     comment = model.Comment(
         permalink = comment_key,
         body = property_hash['body'],
         article = article_key,
-        thread = property_hash['thread']
-    )
+        thread = property_hash['thread'])
     fill_optional_properties(comment, property_hash)
     comment.put()
     restful.successful_post_response(handler, comment.permalink, 'comment')
@@ -183,8 +178,7 @@ class RootHandler(restful.Controller):
         page.render_query(
             self, 'articles', 
             db.Query(model.Article). \
-               filter('article_type =', 'blog').order('-published')
-        )
+               filter('article_type =', 'blog').order('-published'))
 
     @authorized.role("admin")
     def post(self):
@@ -202,7 +196,7 @@ class PageHandler(restful.Controller):
 
         # Check legacy_id_mapping if it's provided
         article = None
-        if config.blog.has_key('legacy_id_mapping'):
+        if 'legacy_id_mapping' in config.blog:
             url_match = re.match(config.blog['legacy_id_mapping']['regex'], 
                                  path)
             if url_match:
@@ -281,8 +275,7 @@ class TagHandler(restful.Controller):
         page.render_query(
             self, 'articles', 
             db.Query(model.Article).filter('tags =', tag).order('-published'), 
-            {'tag': tag}
-        )
+            {'tag': tag})
 
 class SearchHandler(restful.Controller):
     def get(self):
@@ -293,8 +286,7 @@ class SearchHandler(restful.Controller):
             # model.Article.all().search(search_term).order('-published'), 
             db.Query(model.Article). \
                filter('tags =', search_term).order('-published'), 
-            {'search_term': search_term}
-        )
+            {'search_term': search_term})
 
 class YearHandler(restful.Controller):
     def get(self, year):
@@ -307,8 +299,7 @@ class YearHandler(restful.Controller):
             db.Query(model.Article).order('-published'). \
                filter('published >=', start_date). \
                filter('published <=', end_date), 
-            {'title': 'Articles for ' + year, 'year': year}
-        )
+            {'title': 'Articles for ' + year, 'year': year})
 
 class MonthHandler(restful.Controller):
     def get(self, year, month):
@@ -324,8 +315,7 @@ class MonthHandler(restful.Controller):
                filter('published >=', start_date). \
                filter('published <=', end_date), 
             {'title': 'Articles for ' + month + '/' + year, 
-             'year': year, 'month': month}
-        )
+             'year': year, 'month': month})
 
     def post(self, year, month):
         """ Add a blog entry. Since we are POSTing, the server handles 

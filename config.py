@@ -59,7 +59,8 @@ default_page = {
               "description": "Most recent snapshot" },
             { "title": "Architecture Diagram", 
               "url": "/static/images/architecture2.png", 
-              "description": "How Bloog interacts with clients through REST HTTP" }
+              "description": 
+                "How Bloog interacts with clients through REST HTTP" }
         ]
     },
     "featuredOthersPages": {
@@ -77,7 +78,8 @@ default_page = {
               "description": "Flash and Flex on Google AppEngine" },
             { "title": "Dev Console", 
               "url": "http://localhost:8080/_ah/admin/datastore", 
-              "description": "Your datastore viewer and console if running locally" }
+              "description": 
+                "Your datastore viewer and console if running locally" }
         ]
     },
 }

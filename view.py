@@ -67,9 +67,10 @@ def get_view_file(handler, params={}):
     Properties 'module_name' and 'handler_name' can be passed in 
      params to override the current module/handler name.
     """
-    desired_ext = 'html'
-    if params.has_key('ext'):
+    if 'ext' in params:
         desired_ext = params['ext']
+    else:
+        desired_ext = 'html'
 
     verb = handler.request.method.lower()
     class_name = str(handler.__class__)
@@ -81,9 +82,9 @@ def get_view_file(handler, params={}):
         module_name = None
         handler_name = None
 
-    if params.has_key('module_name'):
+    if 'module_name' in params:
         module_name = params['module_name']
-    if params.has_key('handler_name'):
+    if 'handler_name' in params:
         handler_name = params['handler_name']
 
     if module_name and handler_name:
