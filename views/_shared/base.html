@@ -108,9 +108,9 @@
                         <div class="middle_links">
                             <h3>Administrative Panel</h3>
                             <ul>
-                                <li><a href="#">New Article</a>
+                                <li><a href="/admin/article">New Article</a>
                                     - Post a new article (undated)</li>
-                                <li><a href="#">New Blog Entry</a>
+                                <li><a href="/admin/blog">New Blog Entry</a>
                                     - Post a new blog entry (dated)</li>
                                 <li><a href="/admin/cache_stats">Cache Stats</a>
                                     - Review memcached statistics</li>
@@ -264,22 +264,26 @@
             </div>
         </div>
 
-        {% block javascript_code %}
-        <script type="text/javascript" src="/static/js/yui/build/yahoo-dom-event/yahoo-dom-event.js"></script>
+        {% block bottom_html %}
+        {% endblock %}
+
+        <script type="text/javascript" src="http://yui.yahooapis.com/combo?2.5.2/build/yahoo-dom-event/yahoo-dom-event.js"></script>
         <script type="text/javascript">
-            YAHOO.namespace("bloog");
-            YAHOO.bloog.toggleDiv = function(e) {
-              if (this.style.display == 'none') {
-                this.style.display = 'block';
-              } else {
-                this.style.display = 'none';
-              }
+            function toggleDiv(e) {
+                var archives = document.getElementById("archives");
+                if (archives.style.display == 'none') {
+                    archives.style.display = 'block';
+                } else {
+                    archives.style.display = 'none';
+                }
             }
-            YAHOO.bloog.initArchive = function() {
-                YAHOO.util.Event.addListener("archiveLink", "click", YAHOO.bloog.toogleDiv)
+            function initArchive() {
+                YAHOO.util.Event.addListener("archiveLink", "click", toggleDiv);
             }
-            YAHOO.util.Event.onDOMReady(YAHOO.bloog.initArchive);
+            YAHOO.util.Event.onDOMReady(initArchive);
         </script>
+
+        {% block javascript_code %}
         {% endblock %}
 
         {% block ajax_search_api %}
@@ -288,6 +292,7 @@
         <style type="text/css">
         #searchWrap .gsc-control { width: 250px; }
         </style>
+
         <script type="text/javascript">
             google.load("search", "1");
             function searchInitialize() {
@@ -301,9 +306,6 @@
             }
             google.setOnLoadCallback(searchInitialize);
         </script>
-        {% endblock %}
-
-        {% block bottom_body %}
         {% endblock %}
     </body>
 </html>
