@@ -174,7 +174,7 @@ class HttpRESTClient(object):
         # Our app expects POSTs to return a url link with particular format.
         # This successful response syntax can be found in blog.py, 
         # successful_post_response()
-        url_match = re.match('<a href="([\w\-/]+)">(\w+) '
+        url_match = re.match('<a href="([\w\-/]+)">(.+) '
                              'successfully stored</a>', content)
         if not url_match:
             raise RequestError('Unexpected response from web app: '
@@ -279,7 +279,7 @@ class DrupalConverter(object):
                     article['updated'] = \
                         str(datetime.datetime.fromtimestamp(row[6]))
                     # Determine where to POST this article if it's a 
-                    # page or a blog entry
+                    # article or a blog entry
                     if ntype == 'blog':
                         article['post_url'] = '/' + str(published.year) + \
                                               '/' + str(published.month) + "/"

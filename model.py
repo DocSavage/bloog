@@ -36,7 +36,7 @@ class Article(db.Model):
     title = db.StringProperty(required=True)
     article_type = db.StringProperty(
                         required=True, 
-                        choices=set(["page", "blog"]))
+                        choices=set(["article", "blog entry"]))
     body = db.TextProperty(required=True)
     # If available, we use 'excerpt' to summarize instead of 
     # extracting the first 68 words of 'body'.

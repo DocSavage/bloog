@@ -59,9 +59,9 @@ import legacy_aliases   # This can be either manually created or
 
 # Functions to generate permalinks depending on type of article
 permalink_funcs = {
-    'page': lambda title,date: get_friendly_url(title),
-    'blog': lambda title,date: str(date.year) + "/" + str(date.month) + \
-                               "/" + get_friendly_url(title)
+    'article': lambda title,date: get_friendly_url(title),
+    'blog entry': lambda title,date: str(date.year) + "/" + \
+                        str(date.month) + "/" + get_friendly_url(title)
 }
 
 # Module methods to handle incoming data
@@ -199,12 +199,12 @@ class RootHandler(restful.Controller):
         page.render_query(
             self, 'articles', 
             db.Query(model.Article). \
-               filter('article_type =', 'blog').order('-published'))
+               filter('article_type =', 'blog entry').order('-published'))
 
     @authorized.role("admin")
     def post(self):
         logging.debug("RootHandler#post")
-        process_article_submission(handler=self, article_type='page')
+        process_article_submission(handler=self, article_type='article')
 
 # Articles are off root url
 class ArticleHandler(restful.Controller):
@@ -355,13 +355,13 @@ class MonthHandler(restful.Controller):
         """ Add a blog entry. Since we are POSTing, the server handles 
             creation of the permalink url. """
         logging.debug("MonthHandler#post on date %s, %s", year, month)
-        process_article_submission(handler=self, article_type='blog')
+        process_article_submission(handler=self, article_type='blog entry')
         
 class AtomHandler(webapp.RequestHandler):
     def get(self):
         logging.debug("Sending Atom feed")
         articles = db.Query(model.Article). \
-                      filter('article_type =', 'blog'). \
+                      filter('article_type =', 'blog entry'). \
                       order('-published').fetch(limit=10)
         updated = ''
         if articles:
