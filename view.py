@@ -35,7 +35,7 @@ import time
 import urlparse
 import string
 
-bloog_version = "0.6"       # Constant should be in upgradable code files.
+bloog_version = "0.8"       # Constant should be in upgradable code files.
 
 NUM_FULL_RENDERS = {}       # Cached data for some timings.
 

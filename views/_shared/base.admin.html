@@ -1,5 +1,9 @@
 {% extends "../_shared/base.html" %}
 
+{% block head %}
+<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.2/build/container/assets/skins/sam/container.css">
+{% endblock %}
+
 {% block first_column %}
     <div id="mainCol" class="fix"><a name="main"></a>
     {% for article in articles %}
@@ -25,4 +29,99 @@
             <p>Stay tuned...</p>
         </div>
     </div>
+{% endblock %}
+
+{% block bottom_html %}
+<div id="myDialog">
+    <div class="hd">Rich Text Entry</div>
+    <div class="bd">
+        <form name="dlgForm" method="post" action="/">
+            <br />
+            <label for="title">Title:</label>&nbsp;<input type="text" name="title" size="50" />
+            <p>&nbsp;</p>
+            <textarea name="body" id="body" cols="50" rows="10">
+                <strong>Please enter your text here.</strong>
+                <p>It will be sent to the server on submit.</p>
+            </textarea>
+            <input type="hidden" name="format" value="html">
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript_code %}
+<script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/animation/animation-min.js"></script>
+<script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/connection/connection-min.js"></script> 
+<script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/container/container-min.js"></script> 
+<script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/menu/menu-min.js"></script> 
+<script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/element/element-beta-min.js"></script>
+<script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/utilities/utilities.js"></script>
+<script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/button/button-min.js"></script> 
+<script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/editor/editor-beta-min.js"></script>
+<script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/selector/selector-beta-min.js"></script>
+<script type="text/javascript" src="/static/js/ojay/js-class.js"></script>
+<script type="text/javascript" src="/static/js/ojay/core.js"></script>
+
+<script type="text/javascript">
+    YAHOO.namespace("bloog");
+    function showRTE(e, isArticle) {
+        var hdr = $('div#myDialog div.hd');
+        if (isArticle) {
+            hdr.setContent('Submit Article');
+        } else {
+            hdr.setContent('Submit Blog Entry');
+        }
+        YAHOO.bloog.myDialog.show();
+    }
+    function initAdmin() {
+        var handleCancel = function() {
+            this.cancel();
+        }
+        var handleSubmit = function() {
+            this.submit();
+        }
+        YAHOO.namespace("bloog");
+        YAHOO.bloog.myDialog = new YAHOO.widget.Dialog("myDialog", {
+                width: "550px",
+                fixedcenter: true,
+                visible: false,
+                modal: true,
+                constraintoviewpoint: true,
+                buttons: [ { text: "Submit", handler: handleSubmit, isDefault:true },
+                           { text: "Cancel", handler: handleCancel } ]
+            });
+        var myEditor = new YAHOO.widget.Editor('body', {
+            height: '300px',
+            width: '500px',
+            dompath: true,
+            animate: true
+        })
+        myEditor.render();
+        myEditor.set("handleSubmit", true);
+        
+        YAHOO.bloog.myDialog.validate = function() {
+            var data = this.getData();
+            if (data.title == "") {
+                alert("Please enter a title for this post.");
+                return false;
+            }
+            return true;
+        }
+        var handleSuccess = function(o) {
+            var response = o.responseText;
+            response = response.split("<!")[0];
+            document.getElementById("resp").innerHTML = response;
+        };
+        var handleFailure = function(o) {
+            alert("Submission failed: " + o.status);
+        };
+        YAHOO.bloog.myDialog.callback = { success: handleSuccess, failure: handleFailure };
+
+        YAHOO.bloog.myDialog.render();
+
+        YAHOO.util.Event.addListener("newarticle", "click", showRTE, true);
+        YAHOO.util.Event.addListener("newblog", "click", showRTE, false);      
+    }
+    YAHOO.util.Event.onDOMReady(initAdmin);
+</script>
 {% endblock %}

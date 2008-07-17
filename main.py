@@ -59,7 +59,7 @@ def main():
                      ('/([12]\d\d\d)/*$', blog.YearHandler),
                      ('/([12]\d\d\d)/(\d|[01]\d)/*$', blog.MonthHandler),
                      ('/([12]\d\d\d)/(\d|[01]\d)/([-\w]+)/*$',          
-                        blog.ArticleHandler),
+                        blog.BlogEntryHandler),
                      ('/admin/cache_stats/*$', cache_stats.CacheStatsHandler),
                      ('/admin/timings/*$', timings.TimingHandler),
                      ('/search', blog.SearchHandler),
@@ -67,7 +67,7 @@ def main():
                      ('/tag/(.*)', blog.TagHandler),
                      (config.blog['master_atom_url'] + '/*$', 
                         blog.AtomHandler),
-                     ('/(.*)', blog.PageHandler)], 
+                     ('/(.*)', blog.ArticleHandler)], 
                     debug=True)
     wsgiref.handlers.CGIHandler().run(application)
     timings.stop_run(path)

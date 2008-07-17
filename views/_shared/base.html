@@ -7,10 +7,11 @@
         <link rel="stylesheet" href="/static/style.css" type="text/css" media="screen" />
         <link rel="alternate" type="application/rss+xml" title="{{ blog.title }} RSS Feed" 
               href="{{ blog.root_url }}{{ blog.master_atom_url }}" />
+        <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.2/build/assets/skins/sam/skin.css">
         {% block head %}
         {% endblock %}
     </head>
-    <body>
+    <body class="yui-skin-sam">
         <div id="wrapper">
             <a name="top"></a>
             <div id="masthead" class="fix">
@@ -112,9 +113,9 @@
                         <div class="middle_links">
                             <h3>Administrative Panel</h3>
                             <ul>
-                                <li><a href="/admin/article">New Article</a>
+                                <li><a id="newarticle" href="#">New Article</a>
                                     - Post a new article (undated)</li>
-                                <li><a href="/admin/blog">New Blog Entry</a>
+                                <li><a id="newblog" href="#">New Blog Entry</a>
                                     - Post a new blog entry (dated)</li>
                                 <li><a href="/admin/cache_stats">Cache Stats</a>
                                     - Review memcached statistics</li>
@@ -271,7 +272,7 @@
         {% block bottom_html %}
         {% endblock %}
 
-        <script type="text/javascript" src="http://yui.yahooapis.com/combo?2.5.2/build/yahoo-dom-event/yahoo-dom-event.js"></script>
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/yahoo-dom-event/yahoo-dom-event.js"></script> 
         <script type="text/javascript">
             function toggleDiv(e) {
                 var archives = document.getElementById("archives");

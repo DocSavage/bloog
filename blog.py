@@ -161,6 +161,27 @@ def process_comment_submission(handler, article):
     restful.successful_post_response(handler, comment.permalink, 'comment')
     view.invalidate_cache()
 
+def render_article(handler, article):
+    if article:
+        comments = []
+        for comment in article.comment_set:
+            comments.append(comment)
+
+        page = view.ViewPage()
+        use_two_columns = article.is_big() or \
+                          len(article.html) + len(comments)*80 > 2000
+        page.render(handler, {"two_columns": use_two_columns, 
+                              "title": article.title, 
+                              "article": article, "comments": comments})
+    else:
+        # This didn't fall into any of our pages or aliases.
+        # Page not found.
+        #   could do --> self.redirect('/404.html')
+        handler.error(404)
+        view.ViewPage(cache_time=36000). \
+             render(handler, {'module_name': 'blog', 
+                           'handler_name': 'notfound'})
+
 class NotFoundHandler(webapp.RequestHandler):
     def get(self):
         self.error(404)
@@ -185,9 +206,10 @@ class RootHandler(restful.Controller):
         logging.debug("RootHandler#post")
         process_article_submission(handler=self, article_type='page')
 
-class PageHandler(restful.Controller):
+# Articles are off root url
+class ArticleHandler(restful.Controller):
     def get(self, path):
-        logging.debug("PageHandler#get on path (%s)", path)
+        logging.debug("ArticleHandler#get on path (%s)", path)
         # Handle legacy aliases
         for alias in legacy_aliases.redirects:
             if path.lower() == alias.lower():
@@ -208,25 +230,7 @@ class PageHandler(restful.Controller):
             article = db.Query(model.Article). \
                          filter('permalink =', path).get()
 
-        comments = []
-        if article:
-            for comment in article.comment_set:
-                comments.append(comment)
-
-            page = view.ViewPage()
-            use_two_columns = article.is_big() or \
-                              len(article.html) + len(comments)*80 > 2000
-            page.render(self, {"two_columns": use_two_columns, 
-                               "title": article.title, 
-                               "article": article, "comments": comments})
-            return
-
-        # This didn't fall into any of our pages or aliases.
-        # Page not found.
-        #   could do --> self.redirect('/404.html')
-        self.error(404)
-        view.ViewPage(cache_time=36000). \
-             render(self, {'module_name': 'blog', 'handler_name': 'notfound'})
+        render_article(self, article)
 
     @authorized.role("user")
     def post(self, path):
@@ -264,6 +268,36 @@ class PageHandler(restful.Controller):
             delete_entity(query)
         else:
             self.error(404)
+
+# Blog entries are dated articles
+class BlogEntryHandler(restful.Controller):
+    def get(self, year, month, perm_stem):
+        logging.debug("BlogEntryHandler#get for year %s, "
+                      "month %s, and perm_link %s", 
+                      year, month, perm_stem)
+        article = db.Query(model.Article). \
+                     filter('permalink =', 
+                            year + '/' + month + '/' + perm_stem).get()
+
+        render_article(self, article)
+
+    @authorized.role("admin")
+    def put(self, year, month, perm_stem):
+        # TODO: Edit article
+        view.invalidate_cache()
+
+    @authorized.role("admin")
+    def delete(self, year, month, perm_stem):
+        # TODO: Delete this article
+        view.invalidate_cache()
+
+    @authorized.role("user")
+    def post(self, year, month, perm_stem):
+        logging.debug("Adding comment for blog entry %s", self.request.path)
+        permalink = year + '/' + month + '/' + perm_stem
+        article = db.Query(model.Article). \
+                     filter('permalink =', permalink).get()
+        process_comment_submission(self, article)
 
 class TagHandler(restful.Controller):
     def get(self, encoded_tag):
@@ -323,45 +357,6 @@ class MonthHandler(restful.Controller):
         logging.debug("MonthHandler#post on date %s, %s", year, month)
         process_article_submission(handler=self, article_type='blog')
         
-class ArticleHandler(restful.Controller):
-    def get(self, year, month, perm_stem):
-        logging.debug("ArticleHandler#get for year %s, "
-                      "month %s, and perm_link %s", 
-                      year, month, perm_stem)
-        article = db.Query(model.Article). \
-                     filter('permalink =', 
-                            year + '/' + month + '/' + perm_stem).get()
-        comments = []
-        if article:
-            for comment in article.comment_set:
-                logging.debug("Found comment '%s'", comment.title)
-                comments.append(comment)
-
-        page = view.ViewPage()
-        use_two_columns = article.is_big() or \
-                          len(article.html) + len(comments)*80 > 2000
-        page.render(self, {"two_columns": use_two_columns, 
-                           "title": article.title, 
-                           "article": article, "comments": comments})
-
-    @authorized.role("admin")
-    def put(self, year, month, perm_stem):
-        # TODO: Edit article
-        view.invalidate_cache()
-
-    @authorized.role("admin")
-    def delete(self, year, month, perm_stem):
-        # TODO: Delete this article
-        view.invalidate_cache()
-
-    @authorized.role("user")
-    def post(self, year, month, perm_stem):
-        logging.debug("Adding comment for article %s", self.request.path)
-        permalink = year + '/' + month + '/' + perm_stem
-        article = db.Query(model.Article). \
-                     filter('permalink =', permalink).get()
-        process_comment_submission(self, article)
-
 class AtomHandler(webapp.RequestHandler):
     def get(self):
         logging.debug("Sending Atom feed")
