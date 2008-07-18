@@ -35,7 +35,7 @@
 <div id="myDialog">
     <div class="hd">Rich Text Entry</div>
     <div class="bd">
-        <form name="dlgForm" method="post" action="/">
+        <form id="dlgForm" name="dlgForm" method="post" action="/">
             <br />
             <label for="title">Title:</label>&nbsp;<input type="text" name="title" size="50" />
             <p>&nbsp;</p>
@@ -47,6 +47,14 @@
         </form>
     </div>
 </div>
+
+<div id="responseDialog">
+    <div class="hd">Response from Bloog</div>
+    <div class="bd">
+        <div id="bloogResponse"></div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block javascript_code %}
@@ -70,6 +78,10 @@
             hdr.setContent('Submit Article');
         } else {
             hdr.setContent('Submit Blog Entry');
+            var today = new Date();
+            var month = today.getMonth() + 1;
+            var year = today.getFullYear();
+            document.getElementById("dlgForm").action = "/" + year + "/" + month;
         }
         YAHOO.bloog.myDialog.show();
     }
@@ -78,6 +90,7 @@
             this.cancel();
         }
         var handleSubmit = function() {
+            YAHOO.bloog.editor.saveHTML();
             this.submit();
         }
         YAHOO.namespace("bloog");
@@ -90,14 +103,13 @@
                 buttons: [ { text: "Submit", handler: handleSubmit, isDefault:true },
                            { text: "Cancel", handler: handleCancel } ]
             });
-        var myEditor = new YAHOO.widget.Editor('body', {
+        YAHOO.bloog.editor = new YAHOO.widget.Editor('body', {
             height: '300px',
             width: '500px',
             dompath: true,
             animate: true
         })
-        myEditor.render();
-        myEditor.set("handleSubmit", true);
+        YAHOO.bloog.editor.render();
         
         YAHOO.bloog.myDialog.validate = function() {
             var data = this.getData();
@@ -110,14 +122,27 @@
         var handleSuccess = function(o) {
             var response = o.responseText;
             response = response.split("<!")[0];
-            document.getElementById("resp").innerHTML = response;
+            $('div#bloogResponse').setContent(response);
+            YAHOO.bloog.respDialog.show();
         };
         var handleFailure = function(o) {
             alert("Submission failed: " + o.status);
         };
         YAHOO.bloog.myDialog.callback = { success: handleSuccess, failure: handleFailure };
-
         YAHOO.bloog.myDialog.render();
+        
+        var forceUpdate = function(o) {
+            window.location = "/";
+        }
+        YAHOO.bloog.respDialog = new YAHOO.widget.Dialog("responseDialog", {
+                fixedcenter: true,
+                visible: false,
+                modal: true,
+                constraintoviewpoint: true,
+                close: false,
+                buttons: [ { text: "Home Page", handler: forceUpdate, isDefault: true }]
+            });
+        YAHOO.bloog.respDialog.render();
 
         YAHOO.util.Event.addListener("newarticle", "click", showRTE, true);
         YAHOO.util.Event.addListener("newblog", "click", showRTE, false);      

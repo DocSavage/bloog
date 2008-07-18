@@ -41,7 +41,8 @@ from google.appengine.ext import webapp
 # Some useful module methods
 
 def successful_post_response(handler, permalink, post_type):
-    handler.response.out.write('<a href="' + permalink + '">' + post_type + ' successfully stored</a>')
+    handler.response.out.write('<a href="' + permalink + \
+        '">Click here to see successfully stored ' + post_type + '</a>')
 
 def get_hash_from_request(request, propname_list):
     """
