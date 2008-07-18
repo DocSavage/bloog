@@ -8,6 +8,9 @@
         <link rel="alternate" type="application/rss+xml" title="{{ blog.title }} RSS Feed" 
               href="{{ blog.root_url }}{{ blog.master_atom_url }}" />
         <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.2/build/assets/skins/sam/skin.css">
+        {% if user_is_admin %}
+        <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.2/build/container/assets/skins/sam/container.css">
+        {% endif %}
         {% block head %}
         {% endblock %}
     </head>
@@ -108,22 +111,17 @@
                     {% endblock %}
 
                     {% if user_is_admin %}
-                    {% block admin_panel %}
                         <!-- Administrative Console -->
                         <div class="middle_links">
                             <h3>Administrative Panel</h3>
                             <ul>
+                                <li><a id="newblog" href="#">New Blog Entry</a></li>
                                 <li><a id="newarticle" href="#">New Article</a>
-                                    - Post a new article (undated)</li>
-                                <li><a id="newblog" href="#">New Blog Entry</a>
-                                    - Post a new blog entry (dated)</li>
-                                <li><a href="/admin/cache_stats">Cache Stats</a>
-                                    - Review memcached statistics</li>
-                                <li><a href="/admin/timings">Timing Stats</a>
-                                    - Review timing statistics</li>
+                                    - unsyndicated<br />(e.g., about page)</li>
+                                <li><a href="/admin/cache_stats">Memcached Stats</a></li>
+                                <li><a href="/admin/timings">Timing Stats</a></li>
                             </ul>
                         </div>
-                    {% endblock %}
                     {% endif %}
 
                     {% block featuredPages1 %}
@@ -269,8 +267,9 @@
             </div>
         </div>
 
-        {% block bottom_html %}
-        {% endblock %}
+        {% if user_is_admin %}
+        {% include "../_shared/post_dialogs.html" %}
+        {% endif %}
 
         <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/yahoo-dom-event/yahoo-dom-event.js"></script> 
         <script type="text/javascript">
@@ -288,8 +287,20 @@
             YAHOO.util.Event.onDOMReady(initArchive);
         </script>
 
-        {% block javascript_code %}
-        {% endblock %}
+        {% if user_is_admin %}
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/animation/animation-min.js"></script>
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/connection/connection-min.js"></script> 
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/container/container-min.js"></script> 
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/menu/menu-min.js"></script> 
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/element/element-beta-min.js"></script>
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/utilities/utilities.js"></script>
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/button/button-min.js"></script> 
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/editor/editor-beta-min.js"></script>
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/selector/selector-beta-min.js"></script>
+        <script type="text/javascript" src="/static/js/ojay/js-class.js"></script>
+        <script type="text/javascript" src="/static/js/ojay/core.js"></script>
+        <script type="text/javascript" src="/static/js/bloog_admin.js"></script>
+        {% endif %}
 
         {% block ajax_search_api %}
         <script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAArkJQygN7d9x7IYE-cqa7pxRplEICxsDn12H6XOoG8NhvPWEaehQp5DHoozVgJSYne7zLwa0go_ST_g">
