@@ -315,7 +315,7 @@ class DrupalConverter(object):
             print('Bloog successfully stored at %s' % (entry_permalink))
 
             # Store comments associated with the article
-            comment_posting_url = self.app_url + '/' + entry_permalink
+            comment_posting_url = self.app_url + entry_permalink
             sql = "SELECT subject, comment, timestamp, thread, name, mail, " \
                   "homepage FROM comments WHERE nid = " + \
                   str(article['legacy_id'])
