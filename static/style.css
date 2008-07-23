@@ -91,6 +91,9 @@ ul#imgLinks{list-style:none;margin:7px 0;}
 .postMeta span.comments{background:#FFF url(images/chat_grey.gif) no-repeat right center;padding-right:15px;margin-right:2px;}
 .postMeta span.comments a,
 .postMeta span.date a{color:#555;}
+.postMeta span.articlebtn{background:#FFF;}
+.postMeta span.articlebtn a{background:#CCC;color:#000;padding:0 6px;margin:0 2px;text-transform:none;}
+.postMeta span.articlebtn a:hover{background:#D33;}
 .post{margin:0 0 15px 0;}
 .post h2{line-height:1.2em;margin-bottom:7px;}
 .post h2 a{width:100%;display:block;outline:none;}

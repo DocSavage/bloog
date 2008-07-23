@@ -20,7 +20,7 @@ default_blog = {
     "master_atom_url": "/feeds/atom.xml",
     # You can override this default for each page through a handler's call to 
     #  view.ViewPage(cache_time=...)
-    "cache_time": 0,
+    "cache_time": 3600,
 
     # We allow a mapping from some old url pattern to the current query 
     #  using a regex's matched string.  (See PageHandler in blog.py)
@@ -45,8 +45,8 @@ default_page = {
         'AppEngine', 'Bloog', 'Google', 'GData API', 'Another Unused Tag'
     ],
     "featuredMyPages": {
-        "title": "Bloogish Links",
-        "description": "More information for the curious",
+        "title": "Bloog Development",
+        "description": "Get involved",
         "entries": [
             { "title": "Announcement", 
               "url": "http://billkatz-test.appspot.com", 
@@ -57,6 +57,9 @@ default_page = {
             { "title": "Tarball", 
               "url": "http://github.com/DocSavage/bloog/tarball/master", 
               "description": "Most recent snapshot" },
+            { "title": "Group", 
+              "url": "http://groups.google.com/group/bloog/topics", 
+              "description": "Developer discussion" },
             { "title": "Architecture Diagram", 
               "url": "/static/images/architecture2.png", 
               "description": 

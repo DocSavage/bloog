@@ -9,6 +9,10 @@
 {% if article %}
     <div class="post" id="post-{{ article.id }}">
         <div class="postMeta">
+            {% if user_is_admin %}
+            <span class="articlebtn"><a id="editbtn" href="#">Edit</a></span>
+            <span class="articlebtn"><a id="deletebtn" href="#">Delete</a></span>
+            {% endif %}
             <span class="date">{{ article.published.date }}</span>
             <span class="comments"><a href="/{{ article.permalink }}#comments">{{ article.num_comments|default:"0" }}</a></span>
         </div>
@@ -23,6 +27,17 @@
                 <a href="/tag/{{ tag|urlencode }}">{{ tag }}</a>
             {% endfor %}
         </p>
+    </div>
+{% else %}
+    <div class="post">
+        <div class="postMeta"><span class="date">No Matches</span></div>
+        <h2>No Article at Given Address</h2>
+        <div class="entry">
+            <p>You seem to have found a mis-linked page or search query with no associated results.</p>
+            <p>Please trying your search again. 
+                If you feel that you should be staring at something a little more concrete, feel free to email the author of this site 
+                or browse the archives.</p>
+        </div>
     </div>
 {% endif %}
 {% if comments %}
@@ -50,18 +65,6 @@
             </li>
         {% endfor %}
         </ol>
-    </div>
-{% endif %}
-{% if not article %}
-    <div class="post">
-        <div class="postMeta"><span class="date">No Matches</span></div>
-        <h2>No Article at Given Address</h2>
-        <div class="entry">
-            <p>You seem to have found a mis-linked page or search query with no associated results.</p>
-            <p>Please trying your search again. 
-                If you feel that you should be staring at something a little more concrete, feel free to email the author of this site 
-                or browse the archives.</p>
-        </div>
     </div>
 {% endif %}
 </div>

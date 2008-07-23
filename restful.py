@@ -38,11 +38,14 @@ __author__ = 'William T. Katz'
 
 from google.appengine.ext import webapp
 
+import logging
+
 # Some useful module methods
 
-def successful_post_response(handler, permalink, post_type):
-    handler.response.out.write('<a href="' + permalink + \
-        '">Click here to see successfully stored ' + post_type + '</a>')
+def send_successful_response(handler, response):
+    # This is probably just a URL format should be defined here.
+    logging.debug("Sending successful response: %s", response)
+    handler.response.out.write(response)
 
 def get_hash_from_request(request, propname_list):
     """

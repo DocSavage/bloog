@@ -171,17 +171,11 @@ class HttpRESTClient(object):
         }
         status, reason, content, tuple_headers = \
             self.do_request(url, 'POST', headers, body)
-        # Our app expects POSTs to return a url link with particular format.
-        # This successful response syntax can be found in blog.py, 
-        # successful_post_response()
-        url_match = re.match('<a href="([\w\-/]+)">(.+) '
-                             'successfully stored</a>', content)
-        if not url_match:
+        # Our app expects POSTs to return the new post's URL.
+        if status != 200:
             raise RequestError('Unexpected response from web app: '
                                '%s, %s, %s' % (status, reason, content))
-        entry_url = url_match.group(1)
-        entry_type = url_match.group(2)
-        return entry_url, entry_type
+        return content
 
 
 class DrupalConverter(object):
@@ -313,13 +307,12 @@ class DrupalConverter(object):
             # or blog month (if "blog" entry)
             print('Posting article with title "%s" to %s' % 
                   (article['title'], article['post_url']))
-            entry_permalink, entry_type = \
-                self.webserver.post(self.app_url + article['post_url'],
-                                    article)
+            entry_permalink = self.webserver.post(
+                                self.app_url + article['post_url'],
+                                article)
             if article['legacy_id']:
                 redirect[article['legacy_id']] = entry_permalink
-            print('Received response from Bloog that %s entry '
-                  'successfully stored at %s' % (entry_type, entry_permalink))
+            print('Bloog successfully stored at %s' % (entry_permalink))
 
             # Store comments associated with the article
             comment_posting_url = self.app_url + '/' + entry_permalink

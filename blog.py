@@ -120,7 +120,7 @@ def process_article_submission(handler, article_type):
         {'relevant_links': handler.request.get('relevant_links'),       
          'amazon_items': handler.request.get('amazon_items')})
     article.put()
-    restful.successful_post_response(handler, article.permalink, article_type)
+    restful.send_successful_response(handler, '/' + article.permalink)
     view.invalidate_cache()
 
 def process_comment_submission(handler, article):
@@ -158,7 +158,7 @@ def process_comment_submission(handler, article):
         thread = property_hash['thread'])
     fill_optional_properties(comment, property_hash)
     comment.put()
-    restful.successful_post_response(handler, comment.permalink, 'comment')
+    restful.send_successful_response(handler, '/' + comment.permalink)
     view.invalidate_cache()
 
 def render_article(handler, article):
@@ -283,13 +283,18 @@ class BlogEntryHandler(restful.Controller):
 
     @authorized.role("admin")
     def put(self, year, month, perm_stem):
-        # TODO: Edit article
-        view.invalidate_cache()
+        logging.debug("BlogEntryHandler#put")
+        process_article_submission(handler=self, article_type='blog entry')
 
     @authorized.role("admin")
     def delete(self, year, month, perm_stem):
-        # TODO: Delete this article
+        permalink = year + '/' + month + '/' + perm_stem
+        logging.debug("Deleting blog entry %s", permalink)
+        article = db.Query(model.Article). \
+                     filter('permalink =', permalink).get()
+        article.delete()
         view.invalidate_cache()
+        restful.send_successful_response(self, "/")
 
     @authorized.role("user")
     def post(self, year, month, perm_stem):

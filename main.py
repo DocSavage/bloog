@@ -52,6 +52,7 @@ ROUTES = []
 
 def main():
     path = timings.start_run()
+    logging.debug("Received request with path %s", path)
     application = webapp.WSGIApplication(
                     [('/*$', blog.RootHandler),
                      ('/403.html', blog.UnauthorizedHandler),
