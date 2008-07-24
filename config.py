@@ -20,7 +20,7 @@ default_blog = {
     "master_atom_url": "/feeds/atom.xml",
     # You can override this default for each page through a handler's call to 
     #  view.ViewPage(cache_time=...)
-    "cache_time": 3600,
+    "cache_time": 0,
 
     # We allow a mapping from some old url pattern to the current query 
     #  using a regex's matched string.  (See PageHandler in blog.py)

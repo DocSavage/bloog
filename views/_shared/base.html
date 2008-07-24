@@ -303,6 +303,7 @@
         {% endif %}
 
         {% block ajax_search_api %}
+        {% if notdebugging %}
         <script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAArkJQygN7d9x7IYE-cqa7pxRplEICxsDn12H6XOoG8NhvPWEaehQp5DHoozVgJSYne7zLwa0go_ST_g">
         </script>
         <style type="text/css">
@@ -322,6 +323,7 @@
             }
             google.setOnLoadCallback(searchInitialize);
         </script>
+        {% endif %}
         {% endblock %}
     </body>
 </html>

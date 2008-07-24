@@ -41,6 +41,7 @@ import datetime
 import string
 import re
 import os
+import cgi
 
 import logging
 
@@ -65,7 +66,7 @@ permalink_funcs = {
 }
 
 # Module methods to handle incoming data
-def get_datetime(time_string):
+def get_datetime(time_string = None):
     if time_string:
         return datetime.datetime.strptime(time_string, '%Y-%m-%d %H:%M:%S')
     return datetime.datetime.now()
@@ -92,6 +93,24 @@ def fill_optional_properties(obj, property_dict):
     for key, value in property_dict.items():
         if value and not key in obj.__dict__:
             setattr(obj, key, value)
+
+def process_article_edit(handler, permalink):
+    # For http PUT, the parameters are passed in URIencoded string in body
+    body = handler.request.body
+    params = cgi.parse_qs(body)
+    logging.debug(params)
+
+    article = db.Query(model.Article).filter('permalink =', permalink).get()
+    if 'title' in params:
+        article.title = params['title'][0]
+    if 'tags' in params:
+        article.tags = get_tags(params['tags'][0])
+    article.body = params['body'][0]
+    article.html = params['body'][0]
+    article.updated = get_datetime()
+    article.put()
+    restful.send_successful_response(handler, '/' + article.permalink)
+    view.invalidate_cache()
 
 def process_article_submission(handler, article_type):
     property_hash = restful.get_hash_from_request(handler.request, 
@@ -213,7 +232,7 @@ class ArticleHandler(restful.Controller):
         # Handle legacy aliases
         for alias in legacy_aliases.redirects:
             if path.lower() == alias.lower():
-                self.redirect('/' + legacy_aliases.redirects[alias])
+                self.redirect(legacy_aliases.redirects[alias])
                 return
 
         # Check legacy_id_mapping if it's provided
@@ -231,6 +250,11 @@ class ArticleHandler(restful.Controller):
                          filter('permalink =', path).get()
 
         render_article(self, article)
+
+    @authorized.role("admin")
+    def put(self, path):
+        logging.debug("ArticleHandler#put")
+        process_article_edit(self, permalink = path)
 
     @authorized.role("user")
     def post(self, path):
@@ -283,8 +307,9 @@ class BlogEntryHandler(restful.Controller):
 
     @authorized.role("admin")
     def put(self, year, month, perm_stem):
+        permalink = year + '/' + month + '/' + perm_stem
         logging.debug("BlogEntryHandler#put")
-        process_article_submission(handler=self, article_type='blog entry')
+        process_article_edit(handler = self, permalink = permalink)
 
     @authorized.role("admin")
     def delete(self, year, month, perm_stem):

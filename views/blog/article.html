@@ -7,7 +7,7 @@
 <div id="mainCol" class="fix"><a name="main"></a>
 {% endif %}
 {% if article %}
-    <div class="post" id="post-{{ article.id }}">
+    <div id="article" class="post">
         <div class="postMeta">
             {% if user_is_admin %}
             <span class="articlebtn"><a id="editbtn" href="#">Edit</a></span>
@@ -16,9 +16,9 @@
             <span class="date">{{ article.published.date }}</span>
             <span class="comments"><a href="/{{ article.permalink }}#comments">{{ article.num_comments|default:"0" }}</a></span>
         </div>
-        <h2><a href="/{{ article.permalink }}" title="{{ article.title }}">{{ article.title }}</a></h2>
-        <div class="entry">
-            <p>{{ article.html }}</p>
+        <h2><a id="blogtitle" href="/{{ article.permalink }}" title="{{ article.title }}">{{ article.title }}</a></h2>
+        <div id="blogbody" class="entry">
+            {{ article.html }}
         </div>
     </div>
     <div id="more_reading">
