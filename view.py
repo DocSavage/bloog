@@ -42,7 +42,6 @@ NUM_FULL_RENDERS = {}       # Cached data for some timings.
 def invalidate_cache():
     memcache.flush_all()
 
-
 HANDLER_PATTERN = re.compile("<class '([^\.]*)\.(\w+)Handler'>")
 
 def to_filename(camelcase_handler_str):
@@ -125,6 +124,7 @@ class ViewPage(object):
             NUM_FULL_RENDERS[path] = 0
         NUM_FULL_RENDERS[path] += 1     # This lets us see % of cached views
                                         # in /admin/timings (see timings.py)
+        # Define some parameters it'd be nice to have in views by default.
         template_params = {
             "current_url": url,
             "bloog_version": bloog_version,

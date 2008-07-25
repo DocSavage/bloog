@@ -20,8 +20,8 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
 # DEALINGS IN THE SOFTWARE.
 
-
-"""RESTful Controller
+"""
+RESTful Controller
 
 We want our RESTful controllers to simply throw up their hands if they get
 an unhandled HTTP verb.  This is better for rich clients and server load
@@ -30,9 +30,9 @@ than throwing back lots of useless HTML.
 These inherited methods should be overridden if there's a chance a human
 browser is involved.
 
-TODO: Return more information HTTP status codes that won't autotrip browser login forms.
-For example, return status 405 (Method not allowed) with an Allow header containing the
-list of valid methods.
+TODO: Return more information HTTP status codes that won't autotrip 
+browser login forms.  For example, return status 405 (Method not allowed) 
+with an Allow header containing the list of valid methods.
 """
 __author__ = 'William T. Katz'
 
@@ -41,19 +41,23 @@ from google.appengine.ext import webapp
 import logging
 
 # Some useful module methods
-
 def send_successful_response(handler, response):
-    # This is probably just a URL format should be defined here.
+    # Response is probably just a URL.
     logging.debug("Sending successful response: %s", response)
     handler.response.out.write(response)
 
 def get_hash_from_request(request, propname_list):
     """
-    This maps request strings to values in a hash, optionally run through a function with previous request values as parameters to the func.
+    This maps request strings to values in a hash, optionally run through 
+    a function with previous request values as parameters to the func.
     1) string -> just read in the corresponding request value
-    2) tuple (string, func) -> The string is the key and we run its request value through func
-    3) tuple (string, func, previous strings...) -> Same as above but the parameters to func are current property values in our hash
-    OK.. maybe I got a little carried away here experimenting and trying to be DRY.  We can just unroll it in a git branch :)
+    2) tuple (string, func) -> The string is the key and we run its 
+       request value through func
+    3) tuple (string, func, previous strings...) -> Same as above but 
+       the parameters to func are current property values in our hash
+
+    OK.. maybe I got a little carried away here experimenting and trying 
+    to be DRY.  We can just unroll it in a git branch :)
     """
     prop_hash = {}
     for item in propname_list:
@@ -65,11 +69,11 @@ def get_hash_from_request(request, propname_list):
             if len(item) <= 2:
                 prop_hash[key] = prop_func(request.get(key))
             elif len(item) == 4:
-                prop_hash[key] = prop_func(prop_hash[item[2]], prop_hash[item[3]])
+                prop_hash[key] = prop_func(prop_hash[item[2]], 
+                                           prop_hash[item[3]])
     return prop_hash
 
 class Controller(webapp.RequestHandler):
-
     def get(self, *params):
         self.redirect("/403.html")
 

@@ -36,19 +36,12 @@ import logging
 import config
 import timings
 
-# TODO: Add global that caches url aliases read in from YAML file
-
 # TODO: Global that stores cached regexs for routing
 # Each imported handler can check if its routes are already present, 
 #  and if not, it adds them.
 # This might already be done by webapp.WSGIApplication, 
 #  in which case we should look for hook to add routes within modules.
 ROUTES = []
-
-# TODO: Add caching for error pages. 
-# Make sure the error pages doesn't reuse things that shouldn't
-# be reused across requests, like user logins.  Caching error pages 
-# is probably a big win because of spam robots.
 
 def main():
     path = timings.start_run()
