@@ -1,12 +1,6 @@
 # Don't change default_blog or default_page to prevent conflicts when merging #  Bloog source code updates.
 # Do change blog or page dictionaries at the bottom of this config module.
 
-# The following two imports are only needed if you define legacy_id_mapping
-#  like the comments in default_blog suggest
-
-#from google.appengine.ext import db
-#import model
-
 default_blog = {
     "html_type": "text/html",
     "charset": "iso-8859-1",
@@ -20,15 +14,13 @@ default_blog = {
     "master_atom_url": "/feeds/atom.xml",
     # You can override this default for each page through a handler's call to 
     #  view.ViewPage(cache_time=...)
-    "cache_time": 0,
-
-    # We allow a mapping from some old url pattern to the current query 
-    #  using a regex's matched string.  (See PageHandler in blog.py)
-    # The example below is for Drupal and should be uncommented if you 
-    #  are converting from Drupal
-    # "legacy_id_mapping": { 'regex': 'node/(\d+)', 
-    #                        'query': lambda match_str:     
-    #    db.Query(model.Article).filter('legacy_id =', match_str) }
+    "cache_time": 3600,
+    # If you want to use legacy ID mapping for your former blog platform,
+    # define it here and insert the necessary mapping code in the
+    # legacy_id_mapping() function in ArticleHandler (blog.py).
+    # Currently only "Drupal" is supported.
+    "legacy_blog_software": None
+    #"legacy_blog_software": "Drupal"
 }
 
 default_page = {
