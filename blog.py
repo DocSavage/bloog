@@ -65,6 +65,17 @@ permalink_funcs = {
                         str(date.month) + "/" + get_friendly_url(title)
 }
 
+# We allow a mapping from some old url pattern to the current query 
+#  using a regex's matched string.
+def legacy_id_mapping(path, legacy_program):
+    if legacy_program and legacy_program == 'Drupal':
+        url_match = re.match('node/(\d+)', path)
+        if url_match:
+            return db.Query(model.Article). \
+                filter('legacy_id =', url_match.group(1)). \
+                get()
+    return None
+
 # Module methods to handle incoming data
 def get_datetime(time_string = None):
     if time_string:
@@ -229,20 +240,16 @@ class RootHandler(restful.Controller):
 class ArticleHandler(restful.Controller):
     def get(self, path):
         logging.debug("ArticleHandler#get on path (%s)", path)
-        # Handle legacy aliases
+        # Handle precomputed legacy aliases
+        # TODO: Use hash for case-insensitive lookup
         for alias in legacy_aliases.redirects:
             if path.lower() == alias.lower():
                 self.redirect(legacy_aliases.redirects[alias])
                 return
 
-        # Check legacy_id_mapping if it's provided
-        article = None
-        if 'legacy_id_mapping' in config.blog:
-            url_match = re.match(config.blog['legacy_id_mapping']['regex'], 
-                                 path)
-            if url_match:
-                query_func = config.blog['legacy_id_mapping']['query']
-                article = query_func(url_match.group(1)).get()
+        # This lets you map arbitrary URL patterns like /node/3
+        #  to article properties, e.g. 3 -> legacy_id property
+        article = legacy_id_mapping(path, config.blog["legacy_blog_software"])
 
         # Check undated pages
         if not article:
@@ -271,6 +278,7 @@ class ArticleHandler(restful.Controller):
          DRY this up and just require a utility to inquire which entities are 
          available and then call DELETE on each permalink.
         """
+        # TODO: Add DELETE for articles off root like blog entry DELETE.
         model_class = path.lower()
 
         def delete_entity(query):
@@ -381,6 +389,7 @@ class MonthHandler(restful.Controller):
             {'title': 'Articles for ' + month + '/' + year, 
              'year': year, 'month': month})
 
+    @authorized.role("admin")
     def post(self, year, month):
         """ Add a blog entry. Since we are POSTing, the server handles 
             creation of the permalink url. """
