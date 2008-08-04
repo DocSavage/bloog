@@ -1,0 +1,31 @@
+{% if user_is_admin %}
+
+<div id="postDialog">
+    <div class="hd">Post Editor</div>
+    <div class="bd">
+        <form id="postDialogForm" name="postDialogForm" method="post" action="#">
+            <br />
+            <p>
+                <label for="postTitle">Title:</label>&nbsp;
+                <input type="text" id="postTitle" name="postTitle" size="50" /></p>
+            <p>
+                <label for="postTags">Tags:</label>&nbsp;
+                <input type="text" id="postTags" name="postTags" size="50" /><br />
+                <sup><em>Separate tags with commas</em></sup>
+            </p>
+            <textarea id="postBody" name="postBody" cols="50" rows="10">
+                <strong>Please enter your text here.</strong>
+                <p>It will be sent to the server on submit.</p>
+            </textarea>
+            <input type="hidden" name="postFormat" value="html">
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript" src="http://yui.yahooapis.com/combo?2.5.2/build/yahoo-dom-event/yahoo-dom-event.js&2.5.2/build/animation/animation-min.js&2.5.2/build/connection/connection-min.js&2.5.2/build/container/container-min.js&2.5.2/build/menu/menu-min.js&2.5.2/build/element/element-beta-min.js&2.5.2/build/button/button-min.js&2.5.2/build/editor/editor-beta-min.js&2.5.2/build/selector/selector-beta-min.js"></script>
+<script type="text/javascript" src="/static/js/ojay/js-class.js"></script>
+<script type="text/javascript" src="/static/js/ojay/core.js"></script>
+<script type="text/javascript" src="/static/js/bloog_admin.js"></script>
+
+{% endif %}
+

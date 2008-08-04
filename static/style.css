@@ -136,7 +136,10 @@ ol.commentslist{list-style:none;margin:5px 0 12px;}
 .comment_text blockquote{margin:1em 0;}
 .comment_text ul,
 .comment_text ol,
-.comment_text blockquote{margin:0 1em;}p.author_meta{font-weight:bold;text-transform:uppercase;margin:0 0 0 7px;}
+.comment_text blockquote{margin:0 1em;}
+p.comment_meta span.subject{font-weight:bold;text-transform:uppercase;margin:0 0 0 7px;}
+p.comment_meta span.user{font-weight:bold;}
+p.comment_meta span.date{font-weight:bold;text-align:right;}
 p.post_meta{font-size:11px;text-transform:uppercase;text-align:right;margin:0 7px 0 0;}
 .commentslist li.author{background:#333;color:#CCC;}
 .commentslist li.author a{color:#DDD;}
@@ -148,6 +151,18 @@ p.nocomments a:hover{color:#FFF;}
 ol.pingslist{margin:1.5em 2em;font-size:12px;}
 .pingslist li{color:#7F7F7F;margin:0 0 7px 0;}
 .pingslist li a{font-weight:bold;background:url(images/dot.gif) repeat-x bottom left;}
+
+/* Some indentations useful for tree placement of comments */
+#comments_wrapper li.indent1{margin-left: 0em;}
+#comments_wrapper li.indent2{margin-left: 2em;}
+#comments_wrapper li.indent3{margin-left: 4em;}
+#comments_wrapper li.indent4{margin-left: 6em;}
+#comments_wrapper li.indent5{margin-left: 8em;}
+#comments_wrapper li.indent6{margin-left: 10em;}
+#comments_wrapper li.indent7{margin-left: 12em;}
+#comments_wrapper li.indent8{margin-left: 13em;}
+#comments_wrapper li.indent9{margin-left: 14em;}
+#comments_wrapper li.indent10{margin-left: 15em;}
 
 #htmlform p{margin:1em 0;}
 #htmlform p a{font-weight:bold;background:url(images/dot.gif) repeat-x bottom left;}

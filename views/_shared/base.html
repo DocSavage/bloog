@@ -267,43 +267,17 @@
             </div>
         </div>
 
-        {% if user_is_admin %}
-        {% include "../_shared/post_dialogs.html" %}
-        {% endif %}
-
         <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/yahoo-dom-event/yahoo-dom-event.js"></script> 
-        <script type="text/javascript">
-            function toggleDiv(e) {
-                var archives = document.getElementById("archives");
-                if (archives.style.display == 'none') {
-                    archives.style.display = 'block';
-                } else {
-                    archives.style.display = 'none';
-                }
-            }
-            function initArchive() {
-                YAHOO.util.Event.addListener("archiveLink", "click", toggleDiv);
-            }
-            YAHOO.util.Event.onDOMReady(initArchive);
-        </script>
+        <script type="text/javascript" src="/static/js/bloog_base.js"></script>
 
         {% if user_is_admin %}
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/animation/animation-min.js"></script>
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/connection/connection-min.js"></script> 
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/container/container-min.js"></script> 
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/menu/menu-min.js"></script> 
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/element/element-beta-min.js"></script>
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/utilities/utilities.js"></script>
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/button/button-min.js"></script> 
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/editor/editor-beta-min.js"></script>
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/selector/selector-beta-min.js"></script>
-        <script type="text/javascript" src="/static/js/ojay/js-class.js"></script>
-        <script type="text/javascript" src="/static/js/ojay/core.js"></script>
-        <script type="text/javascript" src="/static/js/bloog_admin.js"></script>
+        {% include "../_shared/form_editor.html" %}
         {% endif %}
+
+        {% block end_body %}
+        {% endblock %}
 
         {% block ajax_search_api %}
-        {% if notdebugging %}
         <script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAArkJQygN7d9x7IYE-cqa7pxRplEICxsDn12H6XOoG8NhvPWEaehQp5DHoozVgJSYne7zLwa0go_ST_g">
         </script>
         <style type="text/css">
@@ -323,7 +297,6 @@
             }
             google.setOnLoadCallback(searchInitialize);
         </script>
-        {% endif %}
         {% endblock %}
     </body>
 </html>

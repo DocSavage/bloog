@@ -62,7 +62,9 @@ import legacy_aliases   # This can be either manually created or
 permalink_funcs = {
     'article': lambda title,date: get_friendly_url(title),
     'blog entry': lambda title,date: str(date.year) + "/" + \
-                        str(date.month) + "/" + get_friendly_url(title)
+                        str(date.month) + "/" + get_friendly_url(title),
+    'comment': lambda article,comment: article.permalink + \
+                        "#comment-" + "%s" % comment.key()
 }
 
 # We allow a mapping from some old url pattern to the current query 
@@ -94,9 +96,8 @@ def get_friendly_url(title):
                          re.sub('\s+', '-', title.strip())))
 
 def get_html(body, markup_type):
-    from external.libs import textile
-
     if markup_type == 'textile':
+        from external.libs import textile
         return textile.textile(str(body))
     return body
     
@@ -169,40 +170,41 @@ def process_comment_submission(handler, article):
     property_hash = restful.get_hash_from_request(handler.request, 
         ['name',
          'email',
+         'homepage',
          'title',
          'body',
-         'thread',
+         'key',
          ('published', get_datetime)])
 
-    # Compute a comment key by hashing name, email, and body.  
-    # If these aren't different, don't bother adding comment.
-    comment_key = str(
-        hash((property_hash['name'], 
-              property_hash['email'], 
-              property_hash['body'])))
+    # Generate a thread string.
+    matchobj = re.match(r'[^#]+#comment-(\w+)', property_hash['key'])
+    if matchobj:
+        logging.debug("Comment has parent: %s", matchobj.group(1))
+        comment_key = matchobj.group(1)
+        thread_string = "%03d" % article.num_comments
+    else:
+        logging.debug("Comment is off main article")
+        comment_key = None
+        thread_string = "%03d" % article.num_comments
 
     comment = model.Comment(
-        permalink = comment_key,
+        name = property_hash['name'],
+        email = property_hash['email'],
+        homepage = property_hash['homepage'],
+        title = property_hash['title'],
         body = property_hash['body'],
         article = article_key,
-        thread = property_hash['thread'])
-    fill_optional_properties(comment, property_hash)
+        thread = thread_string)
     comment.put()
-    restful.send_successful_response(handler, '/' + comment.permalink)
+    restful.send_successful_response(handler, 
+        '/' + permalink_funcs['comment'](article, comment))
     view.invalidate_cache()
 
 def render_article(handler, article):
     if article:
-        comments = []
-        for comment in article.comment_set:
-            comments.append(comment)
-
         page = view.ViewPage()
-        use_two_columns = article.is_big() or \
-                          len(article.html) + len(comments)*80 > 2000
-        page.render(handler, {"two_columns": use_two_columns, 
-                              "title": article.title, 
-                              "article": article, "comments": comments})
+        page.render(handler, { "two_columns": article.is_big(), 
+                               "article": article })
     else:
         # This didn't fall into any of our pages or aliases.
         # Page not found.

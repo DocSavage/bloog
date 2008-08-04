@@ -40,26 +40,26 @@
         </div>
     </div>
 {% endif %}
-{% if comments %}
+{% if article.comments %}
     <div id="comments_wrapper">
+        <a class="replybtn" href="#">Add a comment...</a>
         <div id="comments" class="section">
             <h3>{{ article.num_comments }} Comments</h3>
         </div>
         <ol class="commentslist">
-        {% for comment in comments %}
-            <li id="{{ comment.permalink }}" class="alt item">
+        {% for comment in article.comments %}
+            <li id="comment-{{ comment.key }}" class="alt item indent{{ comment.get_indentation }}">
                 <div class="fix">
-                    <div class="author_meta">
-                        <p class="author_meta">
-                            <span class="user">{{ comment.name|default:"" }}</span>
-                            <span class="comment_edit" />
-                        </p>
-                    </div>
+                    <p class="comment_meta">
+                        <span class="subject">{{ comment.title|default:""}}</span>
+                        <span class="user">{{ comment.name|default:"" }}</span>
+                        <span class="date">{{ comment.published.date }}</span>
+                    </p>
                     <div class="comment_text">
                         {{ comment.body }}
                     </div>
                     <p class="post_meta">
-                        <a title="Comment Permalink" href="#comment-{{ comment.permalink }}">{{ comment.published.date }}</a>
+                        <a class="replybtn" title="Reply to Comment" href="#comment-{{ comment.key }}">Reply</a>
                     </p>
                 </div>
             </li>
@@ -68,5 +68,9 @@
     </div>
 {% endif %}
 </div>
+{% endblock %}
+
+{% block end_body %}
+{% include "../_shared/form_comment.html" %}
 {% endblock %}
 

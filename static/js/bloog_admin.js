@@ -22,11 +22,10 @@
  DEALINGS IN THE SOFTWARE.
 **/
 
-YAHOO.namespace("bloog");
 YAHOO.bloog.initAdmin = function() {
 
     var showRTE = function(e) {
-        var hdr = $('div#myDialog div.hd');
+        var hdr = $('div#postDialog div.hd');
         YAHOO.bloog.http = {};
         switch (this.id) {
             case 'newarticle':
@@ -51,46 +50,32 @@ YAHOO.bloog.initAdmin = function() {
                 // Parse the current article HTML into title, tags, and body.
                 var blog_title = document.getElementById("blogtitle").innerHTML;
                 var blog_body =  document.getElementById("blogbody").innerHTML;
-                //$('#title').setContent(blog_title);
+                document.getElementById("postTitle").value = blog_title;
                 YAHOO.bloog.editor.setEditorHTML(blog_body);
                 break;
         }
-        YAHOO.bloog.myDialog.show();
+        YAHOO.bloog.postDialog.render();
+        YAHOO.bloog.postDialog.show();
     }
 
-    var showDeleteDialog = function(e) {
-        YAHOO.bloog.deleteDialog.show();
-    }
-
-    var handleSuccess = function(o) {
-        var response = o.responseText;
-        response = response.split("<!")[0];
-        // Redirect to this new URL -- For some reason this has problems in Safari
-        window.location.href = response;
-    };
-    var handleFailure = function(o) {
-        alert("Submission failed: " + o.status);
-    };
-    var handleCancel = function() {
-        this.cancel();
-    }
     var handleSubmit = function() {
         YAHOO.bloog.editor.saveHTML();
         var html = YAHOO.bloog.editor.get('element').value;
-        var title = YAHOO.util.Dom.get('title').value;
-        var tags = YAHOO.util.Dom.get('tags').value;
+        var title = YAHOO.util.Dom.get('postTitle').value;
+        var tags = YAHOO.util.Dom.get('postTags').value;
         var postData = 'title=' + encodeURIComponent(title) + '&' +
-                        'tags=' + encodeURIComponent(tags) + '&' +
-                        'body=' + encodeURIComponent(html);
+                       'tags=' + encodeURIComponent(tags) + '&' +
+                       'body=' + encodeURIComponent(html);
         var cObj = YAHOO.util.Connect.asyncRequest(
             YAHOO.bloog.http.verb, 
             YAHOO.bloog.http.action, 
-            {success: handleSuccess, failure: handleFailure},
+            { success: YAHOO.bloog.handleSuccess, 
+              failure: YAHOO.bloog.handleFailure },
             postData);
     }
-    YAHOO.namespace("bloog");
-    YAHOO.bloog.myDialog = new YAHOO.widget.Dialog(
-        "myDialog", {
+
+    YAHOO.bloog.postDialog = new YAHOO.widget.Dialog(
+        "postDialog", {
             width: "550px",
             fixedcenter: true,
             visible: false,
@@ -98,59 +83,58 @@ YAHOO.bloog.initAdmin = function() {
             constraintoviewpoint: true,
             buttons: [ { text: "Submit", handler: handleSubmit, 
                          isDefault:true },
-                       { text: "Cancel", handler: handleCancel } ]
+                       { text: "Cancel", handler: YAHOO.bloog.handleCancel } ]
         });
 
+    YAHOO.bloog.postDialog.validate = function() {
+        var data = this.getData();
+        if (data.postTitle == "") {
+            alert("Please enter a title for this post.");
+            return false;
+        }
+        return true;
+    }
+    YAHOO.bloog.postDialog.callback = { success: YAHOO.bloog.handleSuccess, 
+                                        failure: YAHOO.bloog.handleFailure };
+
     YAHOO.bloog.editor = new YAHOO.widget.Editor(
-        'body', {
+        'postBody', {
             height: '300px',
             width: '500px',
             dompath: true,
             animate: true
         });
     YAHOO.bloog.editor.render();
-    
-    YAHOO.bloog.myDialog.validate = function() {
-        var data = this.getData();
-        if (data.title == "") {
-            alert("Please enter a title for this post.");
-            return false;
-        }
-        return true;
-    }
-    YAHOO.bloog.myDialog.callback = { success: handleSuccess, 
-                                      failure: handleFailure };
-    YAHOO.bloog.myDialog.render();
 
     var handleDelete = function() {
         var cObj = YAHOO.util.Connect.asyncRequest(
             'DELETE',
             '#', 
-            {success: handleSuccess, failure: handleFailure}
+            { success: YAHOO.bloog.handleSuccess, 
+              failure: YAHOO.bloog.handleFailure }
         );
     }
     YAHOO.bloog.deleteDialog = new YAHOO.widget.SimpleDialog(
         "confirmDlg", {
             width: "20em",
-            effect: {effect:YAHOO.widget.ContainerEffect.FADE, duration:0.25},
+            effect: { effect:YAHOO.widget.ContainerEffect.FADE, duration:0.25 },
             fixedcenter: true,
             modal: true,
             visible: false,
             draggable: false,
             buttons: [ { text: "Delete!", handler: handleDelete },
                        { text: "Cancel", 
-                         handler: function() { this.hide(); },
+                         handler: function () { this.hide(); },
                          isDefault: true } ]
         })
     YAHOO.bloog.deleteDialog.setHeader("Warning");
     YAHOO.bloog.deleteDialog.setBody("Are you sure you want to delete this post?");
-
     YAHOO.bloog.deleteDialog.render(document.body);
     
     YAHOO.util.Event.addListener("newarticle", "click", showRTE);
     YAHOO.util.Event.addListener("newblog", "click", showRTE);
     YAHOO.util.Event.addListener("editbtn", "click", showRTE);
-    YAHOO.util.Event.addListener("deletebtn", "click", showDeleteDialog);
+    YAHOO.util.Event.addListener("deletebtn", "click", function (e) { YAHOO.bloog.deleteDialog.show(); });
 }
 
 YAHOO.util.Event.onDOMReady(YAHOO.bloog.initAdmin);

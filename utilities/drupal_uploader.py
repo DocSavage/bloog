@@ -100,6 +100,14 @@ def clean_multiline(raw_string):
 def clean_singleline(raw_string):
     return ''.join([x for x in raw_string if ord(x) in OK_TITLE])
 
+def fix_thread_string(tstr):
+    """
+    Takes a string with numbers separated by period and possibly with /
+    at end, and outputs a string with 3 digit numbers separated by periods.
+    """
+    remove_slash = lambda s: s[:-1] if s[-1] == '/' else s
+    three_digits = lambda s: "%03d" % int(s)
+    return '.'.join( map(three_digits, map(remove_slash, tstr.split('.'))))
 
 class Error(Exception):
     """Base-class for exceptions in this module."""
@@ -328,7 +336,7 @@ class DrupalConverter(object):
                     'title': clean_singleline(row[0]),
                     'body': clean_multiline(row[1]),
                     'published': str(datetime.datetime.fromtimestamp(row[2])),
-                    'thread': clean_singleline(row[3]),
+                    'thread': fix_thread_string(clean_singleline(row[3])),
                     'name': clean_singleline(row[4]),
                     'email': clean_singleline(row[5]),
                     'homepage': clean_singleline(row[6])

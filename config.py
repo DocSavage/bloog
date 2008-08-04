@@ -1,3 +1,6 @@
+# If we're debugging, turn the cache off, etc.
+debug = True
+
 # Don't change default_blog or default_page to prevent conflicts when merging #  Bloog source code updates.
 # Do change blog or page dictionaries at the bottom of this config module.
 
@@ -14,7 +17,8 @@ default_blog = {
     "master_atom_url": "/feeds/atom.xml",
     # You can override this default for each page through a handler's call to 
     #  view.ViewPage(cache_time=...)
-    "cache_time": 3600,
+    "cache_time": 0 if debug else 3600,
+
     # If you want to use legacy ID mapping for your former blog platform,
     # define it here and insert the necessary mapping code in the
     # legacy_id_mapping() function in ArticleHandler (blog.py).
