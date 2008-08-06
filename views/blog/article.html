@@ -40,9 +40,9 @@
         </div>
     </div>
 {% endif %}
-{% if article.comments %}
     <div id="comments_wrapper">
         <a class="replybtn" href="#">Add a comment...</a>
+        {% if article.comments %}
         <div id="comments" class="section">
             <h3>{{ article.num_comments }} Comments</h3>
         </div>
@@ -65,8 +65,8 @@
             </li>
         {% endfor %}
         </ol>
+        {% endif %}
     </div>
-{% endif %}
 </div>
 {% endblock %}
 

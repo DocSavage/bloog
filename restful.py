@@ -46,52 +46,78 @@ def send_successful_response(handler, response):
     logging.debug("Sending successful response: %s", response)
     handler.response.out.write(response)
 
-def get_hash_from_request(request, propname_list):
+def get_sent_properties(request_func, propname_list):
     """
     This maps request strings to values in a hash, optionally run through 
     a function with previous request values as parameters to the func.
-    1) string -> just read in the corresponding request value
-    2) tuple (string, func) -> The string is the key and we run its 
-       request value through func
-    3) tuple (string, func, previous strings...) -> Same as above but 
-       the parameters to func are current property values in our hash
-
-    OK.. maybe I got a little carried away here experimenting and trying 
-    to be DRY.  We can just unroll it in a git branch :)
+    1) key -> just read in the corresponding request value
+    2) tuple (key, func) -> Read the request value for the string key
+        and pass it through func
+    3) tuple (key, func, additional keys...) -> Get the request
+        values for the additional keys and pass them through func
+        before setting the key's value with the output.
     """
     prop_hash = {}
     for item in propname_list:
         if type(item) == str:
-            prop_hash[item] = request.get(item)
+            prop_hash[item] = request_func(item)
         elif type(item == tuple):
             key = item[0]
             prop_func = item[1]
             if len(item) <= 2:
-                prop_hash[key] = prop_func(request.get(key))
-            elif len(item) == 4:
-                prop_hash[key] = prop_func(prop_hash[item[2]], 
-                                           prop_hash[item[3]])
+                prop_hash[key] = prop_func(request_func(key))
+            else:
+                try:
+                    addl_keys = map(prop_hash.get, item[2:])
+                    prop_hash[key] = prop_func(*addl_keys)
+                except:
+                    return None
     return prop_hash
+
+def methods_via_query_allowed(handler_method):
+    """
+    A decorator to automatically re-route overloaded POSTs
+    that specify the real HTTP method in a _method query string.
+
+    To use it, decorate your post method like this:
+
+    import restful
+    ...
+    @restful.methods_via_query_allowed
+    def post(self):
+      pass
+
+    The decorator will check for a _method query string or POST argument,
+    and if present, will redirect to delete(), put(), etc.
+    """
+    def redirect_if_needed(self, *args, **kwargs):
+        real_verb = self.request.get('_method', None)
+        if not real_verb and 'X-HTTP-Method-Override' in self.request.environ:
+            real_verb = self.request.environ['X-HTTP-Method-Override']
+        logging.debug("redirect_if_needed: real_verb = %s", real_verb)
+        if real_verb:
+            method = real_verb.upper()
+            if method == 'HEAD':
+                self.head(*args, **kwargs)
+            elif method == 'PUT':
+                self.put(*args, **kwargs)
+            elif method == 'DELETE':
+                self.delete(*args, **kwargs)
+            elif method == 'TRACE':
+                self.trace(*args, **kwargs)
+            elif method == 'OPTIONS':
+                self.head(*args, **kwargs)
+            # POST and GET included for completeness
+            elif method == 'POST':
+                self.post(*args, **kwargs)
+            elif method == 'GET':
+                self.get(*args, **kwargs)
+            else:
+                self.error(405)
+        else:
+            handler_method(self, *args, **kwargs)
+    return redirect_if_needed
 
 class Controller(webapp.RequestHandler):
     def get(self, *params):
         self.redirect("/403.html")
-
-    def post(self, *params):
-        self.error(403)
-
-    def put(self, *params):
-        self.error(403)
-
-    def delete(self, *params):
-        self.error(403)
-
-    def head(self, *params):
-        self.error(403)
-
-    def trace(self, *params):
-        self.error(403)
-
-    def options(self, *params):
-        self.error(403)
-

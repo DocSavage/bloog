@@ -8,9 +8,7 @@
         <link rel="alternate" type="application/rss+xml" title="{{ blog.title }} RSS Feed" 
               href="{{ blog.root_url }}{{ blog.master_atom_url }}" />
         <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.2/build/assets/skins/sam/skin.css">
-        {% if user_is_admin %}
         <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.2/build/container/assets/skins/sam/container.css">
-        {% endif %}
         {% block head %}
         {% endblock %}
     </head>
@@ -267,7 +265,7 @@
             </div>
         </div>
 
-        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/yahoo-dom-event/yahoo-dom-event.js"></script> 
+        <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/yahoo-dom-event/yahoo-dom-event.js"></script>
         <script type="text/javascript" src="/static/js/bloog_base.js"></script>
 
         {% if user_is_admin %}

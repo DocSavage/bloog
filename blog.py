@@ -62,9 +62,7 @@ import legacy_aliases   # This can be either manually created or
 permalink_funcs = {
     'article': lambda title,date: get_friendly_url(title),
     'blog entry': lambda title,date: str(date.year) + "/" + \
-                        str(date.month) + "/" + get_friendly_url(title),
-    'comment': lambda article,comment: article.permalink + \
-                        "#comment-" + "%s" % comment.key()
+                        str(date.month) + "/" + get_friendly_url(title)
 }
 
 # We allow a mapping from some old url pattern to the current query 
@@ -83,7 +81,12 @@ def get_datetime(time_string = None):
     if time_string:
         return datetime.datetime.strptime(time_string, '%Y-%m-%d %H:%M:%S')
     return datetime.datetime.now()
-    
+
+def get_format(format_string):
+    if not format_string or format_string not in ['html', 'textile']:
+        format_string = 'html'
+    return format_string
+
 def get_tags(tag_string):
     if tag_string:
         return [db.Category(s.strip()) for s in tag_string.split(",") 
@@ -110,49 +113,51 @@ def process_article_edit(handler, permalink):
     # For http PUT, the parameters are passed in URIencoded string in body
     body = handler.request.body
     params = cgi.parse_qs(body)
-    logging.debug(params)
-
-    article = db.Query(model.Article).filter('permalink =', permalink).get()
-    if 'title' in params:
-        article.title = params['title'][0]
-    if 'tags' in params:
-        article.tags = get_tags(params['tags'][0])
-    article.body = params['body'][0]
-    article.html = params['body'][0]
-    article.updated = get_datetime()
-    article.put()
-    restful.send_successful_response(handler, '/' + article.permalink)
-    view.invalidate_cache()
-
-def process_article_submission(handler, article_type):
-    property_hash = restful.get_hash_from_request(handler.request, 
+    for key,value in params.iteritems():
+        params[key] = value[0]
+    property_hash = restful.get_sent_properties(params.get,
         ['title',
          'body',
-         'format',
+         ('format', get_format),
+         ('updated', get_datetime),
+         ('tags', get_tags),
+         ('html', get_html, 'body', 'format')]
+    )
+
+    if property_hash:
+        article = db.Query(model.Article).filter('permalink =', permalink).get()
+        for key,value in property_hash.iteritems():
+            setattr(article, key, value)
+        article.put()
+        restful.send_successful_response(handler, '/' + article.permalink)
+        view.invalidate_cache()
+    else:
+        handler.error(400)
+
+def process_article_submission(handler, article_type):
+    property_hash = restful.get_sent_properties(handler.request.get, 
+        ['title',
+         'body',
          'legacy_id',
+         ('format', get_format),
          ('published', get_datetime),
          ('updated', get_datetime),
          ('tags', get_tags),
          ('html', get_html, 'body', 'format'),
          ('permalink', permalink_funcs[article_type], 'title', 'published')])
-    
-    article = model.Article(
-        permalink = property_hash['permalink'],
-        article_type = article_type,
-        title = property_hash['title'],
-        body = property_hash['body'],
-        html = property_hash['html'],
-        published = property_hash['published'],
-        updated = property_hash['updated'],
-        format = 'html')    # We are converting everything to HTML from Drupal 
-                            # since it can mix formats within articles
-    fill_optional_properties(article, property_hash)
-    article.set_associated_data(
-        {'relevant_links': handler.request.get('relevant_links'),       
-         'amazon_items': handler.request.get('amazon_items')})
-    article.put()
-    restful.send_successful_response(handler, '/' + article.permalink)
-    view.invalidate_cache()
+
+    if property_hash:
+        property_hash['format'] = 'html'   # We are converting everything to HTML
+        property_hash['article_type'] = article_type
+        article = model.Article(**property_hash)
+        article.set_associated_data(
+            {'relevant_links': handler.request.get('relevant_links'),       
+             'amazon_items': handler.request.get('amazon_items')})
+        article.put()
+        restful.send_successful_response(handler, '/' + article.permalink)
+        view.invalidate_cache()
+    else:
+        handler.error(400)
 
 def process_comment_submission(handler, article):
     if not article:
@@ -167,7 +172,7 @@ def process_comment_submission(handler, article):
         article.num_comments += 1
     article_key = article.put()
 
-    property_hash = restful.get_hash_from_request(handler.request, 
+    property_hash = restful.get_sent_properties(handler.request.get, 
         ['name',
          'email',
          'homepage',
@@ -196,8 +201,7 @@ def process_comment_submission(handler, article):
         article = article_key,
         thread = thread_string)
     comment.put()
-    restful.send_successful_response(handler, 
-        '/' + permalink_funcs['comment'](article, comment))
+    restful.send_successful_response(handler, '/' + article.permalink)
     view.invalidate_cache()
 
 def render_article(handler, article):
@@ -260,15 +264,16 @@ class ArticleHandler(restful.Controller):
 
         render_article(self, article)
 
-    @authorized.role("admin")
-    def put(self, path):
-        logging.debug("ArticleHandler#put")
-        process_article_edit(self, permalink = path)
-
+    @restful.methods_via_query_allowed    
     @authorized.role("user")
     def post(self, path):
         article = db.Query(model.Article).filter('permalink =', path).get()
         process_comment_submission(self, article)
+
+    @authorized.role("admin")
+    def put(self, path):
+        logging.debug("ArticleHandler#put")
+        process_article_edit(self, permalink = path)
 
     @authorized.role("admin")
     def delete(self, path):
@@ -315,6 +320,15 @@ class BlogEntryHandler(restful.Controller):
 
         render_article(self, article)
 
+    @restful.methods_via_query_allowed    
+    @authorized.role("user")
+    def post(self, year, month, perm_stem):
+        logging.debug("Adding comment for blog entry %s", self.request.path)
+        permalink = year + '/' + month + '/' + perm_stem
+        article = db.Query(model.Article). \
+                     filter('permalink =', permalink).get()
+        process_comment_submission(self, article)
+
     @authorized.role("admin")
     def put(self, year, month, perm_stem):
         permalink = year + '/' + month + '/' + perm_stem
@@ -330,14 +344,6 @@ class BlogEntryHandler(restful.Controller):
         article.delete()
         view.invalidate_cache()
         restful.send_successful_response(self, "/")
-
-    @authorized.role("user")
-    def post(self, year, month, perm_stem):
-        logging.debug("Adding comment for blog entry %s", self.request.path)
-        permalink = year + '/' + month + '/' + perm_stem
-        article = db.Query(model.Article). \
-                     filter('permalink =', permalink).get()
-        process_comment_submission(self, article)
 
 class TagHandler(restful.Controller):
     def get(self, encoded_tag):

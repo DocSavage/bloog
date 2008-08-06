@@ -45,8 +45,8 @@ YAHOO.bloog.initAdmin = function() {
                 break;
             case 'editbtn':
                 hdr.setContent('Submit Edit');
-                YAHOO.bloog.http.action = '#';
-                YAHOO.bloog.http.verb = 'PUT';
+                YAHOO.bloog.http.action = '?_method=PUT';
+                YAHOO.bloog.http.verb = 'POST';
                 // Parse the current article HTML into title, tags, and body.
                 var blog_title = document.getElementById("blogtitle").innerHTML;
                 var blog_body =  document.getElementById("blogbody").innerHTML;
@@ -131,10 +131,10 @@ YAHOO.bloog.initAdmin = function() {
     YAHOO.bloog.deleteDialog.setBody("Are you sure you want to delete this post?");
     YAHOO.bloog.deleteDialog.render(document.body);
     
-    YAHOO.util.Event.addListener("newarticle", "click", showRTE);
-    YAHOO.util.Event.addListener("newblog", "click", showRTE);
-    YAHOO.util.Event.addListener("editbtn", "click", showRTE);
-    YAHOO.util.Event.addListener("deletebtn", "click", function (e) { YAHOO.bloog.deleteDialog.show(); });
+    YAHOO.util.Event.on("newarticle", "click", showRTE);
+    YAHOO.util.Event.on("newblog", "click", showRTE);
+    YAHOO.util.Event.on("editbtn", "click", showRTE);
+    YAHOO.util.Event.on("deletebtn", "click", function (e) { YAHOO.bloog.deleteDialog.show(); });
 }
 
 YAHOO.util.Event.onDOMReady(YAHOO.bloog.initAdmin);

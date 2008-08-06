@@ -86,7 +86,7 @@ YAHOO.bloog.initComments = function() {
     // Use event bubbling so we don't have to attach listeners to each reply
     Ojay('div#comments_wrapper').on('click', Ojay.delegateEvent({
         'a.replybtn': function(link, e) {
-            //e.stopDefault();
+            e.stopDefault();
             YAHOO.bloog.action = link.node.href;
             showRTE();
         }
