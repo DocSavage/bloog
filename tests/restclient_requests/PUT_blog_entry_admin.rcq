@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rest-client version="2.1">
+<request>
+<URL>http://localhost:8080/2008/8/New-Blog?_method=PUT</URL>
+<method>POST</method>
+<headers>
+<header key="Cookie" value="dev_appserver_login=&quot;test@example.com:True&quot;"/>
+</headers>
+<body charset="UTF-8" content-type="text/plain">name=Bill&amp;email=f@bill.com&amp;title=My%20Edited%20Title&amp;body=This%20is%20a%20PUT%20body.</body>
+</request>
+</rest-client>
