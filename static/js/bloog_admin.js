@@ -76,7 +76,7 @@ YAHOO.bloog.initAdmin = function() {
 
     YAHOO.bloog.postDialog = new YAHOO.widget.Dialog(
         "postDialog", {
-            width: "550px",
+            width: "520px",
             fixedcenter: true,
             visible: false,
             modal: true,
@@ -99,7 +99,7 @@ YAHOO.bloog.initAdmin = function() {
 
     YAHOO.bloog.editor = new YAHOO.widget.Editor(
         'postBody', {
-            height: '300px',
+            height: '250px',
             width: '500px',
             dompath: true,
             animate: true

@@ -64,7 +64,7 @@ YAHOO.bloog.initComments = function() {
     
     YAHOO.bloog.commentDialog = new YAHOO.widget.Dialog(
         "commentDialog", {
-            width: "550px",
+            width: "520px",
             fixedcenter: true,
             visible: false,
             modal: true,
@@ -88,11 +88,11 @@ YAHOO.bloog.initComments = function() {
                                            failure: YAHOO.bloog.handleFailure };
     YAHOO.bloog.commentDialog.render();
 
-    YAHOO.bloog.commentEditor = new YAHOO.widget.Editor(
+    YAHOO.bloog.commentEditor = new YAHOO.widget.SimpleEditor(
         'commentBody', {
-            height: '300px',
+            height: '150px',
             width: '500px',
-            dompath: true,
+            dompath: false,
             animate: true
         });
     YAHOO.bloog.commentEditor.render();
