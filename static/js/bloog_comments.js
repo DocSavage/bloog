@@ -29,7 +29,18 @@ YAHOO.bloog.initComments = function() {
         YAHOO.bloog.commentDialog.show();
     }
 
+    var handleSuccess = function(o) {
+        var response = o.responseText;
+        // Insert the comment into the appropriate place then hide dialog.
+        parent_id = '#' + YAHOO.bloog.action.split('#')[1];
+        Ojay(parent_id).insert(response, 'after');
+        YAHOO.bloog.commentDialog.hide();
+    }
+    var handleFailure = function(o) {
+        alert("Sorry, could not save comment!");
+    }
     var handleSubmit = function() {
+        YAHOO.bloog.commentEditor.saveHTML();
         var html = YAHOO.bloog.commentEditor.get('element').value;
         var name = YAHOO.util.Dom.get('commentName').value;
         var email = YAHOO.util.Dom.get('commentEmail').value;
@@ -46,11 +57,11 @@ YAHOO.bloog.initComments = function() {
         var cObj = YAHOO.util.Connect.asyncRequest(
             'POST', 
             YAHOO.bloog.action, 
-            { success: YAHOO.bloog.handleSuccess, 
-              failure: YAHOO.bloog.handleFailure },
+            { success: handleSuccess, 
+              failure: handleFailure },
             postData);
     }
-
+    
     YAHOO.bloog.commentDialog = new YAHOO.widget.Dialog(
         "commentDialog", {
             width: "550px",
@@ -70,7 +81,10 @@ YAHOO.bloog.initComments = function() {
         }
         return true;
     }
-    YAHOO.bloog.commentDialog.callback = { success: YAHOO.bloog.handleSuccess, 
+    var handleDialogSuccess = function() {
+        alert("We are having success from commentDialog");
+    }
+    YAHOO.bloog.commentDialog.callback = { success: handleDialogSuccess, 
                                            failure: YAHOO.bloog.handleFailure };
     YAHOO.bloog.commentDialog.render();
 

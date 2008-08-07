@@ -24,6 +24,19 @@ from google.appengine.ext import db
 import logging
 import config
 
+# Handle generation of thread strings
+def get_thread_string(article, cur_thread_string):
+    min_str = cur_thread_string + '000'
+    max_str = cur_thread_string + '999'
+    q = db.GqlQuery("SELECT * FROM Comment " +
+                    "WHERE article = :1 " +
+                    "AND thread >= :2 AND thread <= :3",
+                    article, min_str, max_str)
+    num_comments = q.count(999)
+    if num_comments > 998:
+        return None         # Only allow 999 comments on each tree level
+    return cur_thread_string + "%03d" % (num_comments + 1)
+
 # The below was pulled due to computational quota issues on large posts.
 # Works with dev server but not after uploading to cloud.
 
@@ -32,38 +45,29 @@ import config
 
 class Article(db.Model):
     permalink = db.StringProperty(required=True)
-
     # Useful for aliasing of old urls
     legacy_id = db.StringProperty()
-
     title = db.StringProperty(required=True)
     article_type = db.StringProperty(
                         required=True, 
                         choices=set(["article", "blog entry"]))
-
     # Body can be in any format supported by Bloog (e.g. textile)
     body = db.TextProperty(required=True)
-
     # If available, we use 'excerpt' to summarize instead of 
     # extracting the first 68 words of 'body'.
     excerpt = db.TextProperty()
-
     # The html property is generated from body
     html = db.TextProperty()
-
     published = db.DateTimeProperty(auto_now_add=True)
     updated = db.DateTimeProperty(auto_now_add=True)
     format = db.StringProperty(
                         required=True, 
                         choices=set(["html", "textile", 
                                      "markdown", "text"]))
-
     # Picked dict for sidelinks, associated Amazon items, etc.
     assoc_dict = db.BlobProperty()
-
     # To prevent full query when just showing article headlines
     num_comments = db.IntegerProperty(default=0)
-
     tags = db.ListProperty(db.Category)
 
     def get_comments(self):
@@ -104,6 +108,10 @@ class Article(db.Model):
         else:
             return False
 
+    def next_comment_thread_string(self):
+        'Returns thread string for next comment for this article'
+        return get_thread_string(self, '')
+
 class Comment(db.Model):
     name = db.StringProperty()
     email = db.EmailProperty()
@@ -134,10 +142,6 @@ class Comment(db.Model):
         return min([len(nesting_str_array), 10])
 
     def next_child_thread_string(self):
-        """Returns thread string for next child of this comment"""
-        q = db.GqlQuery("SELECT * FROM Comment " +
-                        "WHERE article = :1 " +
-                        "AND thread >= :2 AND thread <= :3",
-                        self.article,
-                        thread + '.000', thread + '.999')
-        return self.thread + "." + "%03d" % q.count(999)
+        'Returns thread string for next child of this comment'
+        return get_thread_string(self.article, self.thread + '.')
+

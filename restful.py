@@ -56,22 +56,28 @@ def get_sent_properties(request_func, propname_list):
     3) tuple (key, func, additional keys...) -> Get the request
         values for the additional keys and pass them through func
         before setting the key's value with the output.
+    If a key is not present in the request, then we do not insert a key
+    with None or empty string.  The key is simply absent, therefore allowing
+    you to use the returned hash to initial a Model instance.
     """
     prop_hash = {}
     for item in propname_list:
         if type(item) == str:
-            prop_hash[item] = request_func(item)
+            key = item
+            value = request_func(item)
         elif type(item == tuple):
             key = item[0]
             prop_func = item[1]
             if len(item) <= 2:
-                prop_hash[key] = prop_func(request_func(key))
+                value = prop_func(request_func(key))
             else:
                 try:
                     addl_keys = map(prop_hash.get, item[2:])
-                    prop_hash[key] = prop_func(*addl_keys)
+                    value = prop_func(*addl_keys)
                 except:
                     return None
+        if value:
+            prop_hash[key] = value
     return prop_hash
 
 def methods_via_query_allowed(handler_method):

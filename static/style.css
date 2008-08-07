@@ -32,6 +32,11 @@ a:hover{color:#666;}
 #wrapper pre, #wrapper p { clear: none; }  
 th,td{padding:3px 20px 3px 0px;}
 
+.popupdialog form{text-align: center;}
+.popupdialog form label{width: 400px;}
+.popupdialog form input{width: 400px;}
+.popupdialog form textarea{width: 400px;}
+
 /* masthead / footer - navigation and categories */
 #masthead{padding:5px 0;}
 #masthead h1 a{text-transform:uppercase;width:400px;float:left;margin:12px 0 0 0;}

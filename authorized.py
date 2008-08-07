@@ -30,6 +30,8 @@ __author__ = 'William T. Katz'
 
 from google.appengine.api import users
 
+import logging
+
 def role(role):
     """
     A decorator to enforce user roles, currently 'user' (logged in) 
@@ -56,16 +58,21 @@ def role(role):
             user = users.get_current_user()
             if not user:
                 if self.request.method != 'GET':
+                    logging.debug("Not user - aborting")
                     self.error(403)
                 else:
+                    logging.debug("User not logged in -- force login")
                     self.redirect(users.create_login_url(self.request.uri))
             elif role == "user" or (role == "admin" and     
                                     users.is_current_user_admin()):
+                logging.debug("Role is %s so will allow handler", role)
                 handler_method(self, *args, **kwargs)
             else:
                 if self.request.method == 'GET':
+                    logging.debug("Unknown role (%s) on GET", role)
                     self.redirect("/403.html")
                 else:
+                    logging.debug("Unknown role: %s", role)
                     self.error(403) # User didn't meet role.  
                                     # TODO: Give better feedback/status code.
         return check_login

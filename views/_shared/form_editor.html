@@ -1,15 +1,15 @@
 {% if user_is_admin %}
 
-<div id="postDialog">
+<div id="postDialog" class="popupDialog">
     <div class="hd">Post Editor</div>
     <div class="bd">
         <form id="postDialogForm" name="postDialogForm" method="post" action="#">
             <br />
             <p>
-                <label for="postTitle">Title:</label>&nbsp;
+                <label for="postTitle">Title:</label><br />
                 <input type="text" id="postTitle" name="postTitle" size="50" /></p>
             <p>
-                <label for="postTags">Tags:</label>&nbsp;
+                <label for="postTags">Tags:</label><br />
                 <input type="text" id="postTags" name="postTags" size="50" /><br />
                 <sup><em>Separate tags with commas</em></sup>
             </p>

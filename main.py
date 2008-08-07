@@ -36,33 +36,25 @@ import logging
 import config
 import timings
 
-# TODO: Global that stores cached regexs for routing
-# Each imported handler can check if its routes are already present, 
-#  and if not, it adds them.
-# This might already be done by webapp.WSGIApplication, 
-#  in which case we should look for hook to add routes within modules.
-ROUTES = []
+ROUTES = [
+    ('/*$', blog.RootHandler),
+    ('/403.html', blog.UnauthorizedHandler),
+    ('/404.html', blog.NotFoundHandler),
+    ('/([12]\d\d\d)/*$', blog.YearHandler),
+    ('/([12]\d\d\d)/(\d|[01]\d)/*$', blog.MonthHandler),
+    ('/([12]\d\d\d)/(\d|[01]\d)/([-\w]+)/*$', blog.BlogEntryHandler),
+    ('/admin/cache_stats/*$', cache_stats.CacheStatsHandler),
+    ('/admin/timings/*$', timings.TimingHandler),
+    ('/search', blog.SearchHandler),
+    ('/contact/*$', contact.ContactHandler),
+    ('/tag/(.*)', blog.TagHandler),
+    (config.blog['master_atom_url'] + '/*$', blog.AtomHandler),
+    ('/(.*)', blog.ArticleHandler)]
 
 def main():
     path = timings.start_run()
     logging.debug("Received request with path %s", path)
-    application = webapp.WSGIApplication(
-                    [('/*$', blog.RootHandler),
-                     ('/403.html', blog.UnauthorizedHandler),
-                     ('/404.html', blog.NotFoundHandler),
-                     ('/([12]\d\d\d)/*$', blog.YearHandler),
-                     ('/([12]\d\d\d)/(\d|[01]\d)/*$', blog.MonthHandler),
-                     ('/([12]\d\d\d)/(\d|[01]\d)/([-\w]+)/*$',          
-                        blog.BlogEntryHandler),
-                     ('/admin/cache_stats/*$', cache_stats.CacheStatsHandler),
-                     ('/admin/timings/*$', timings.TimingHandler),
-                     ('/search', blog.SearchHandler),
-                     ('/contact/*$', contact.ContactHandler),
-                     ('/tag/(.*)', blog.TagHandler),
-                     (config.blog['master_atom_url'] + '/*$', 
-                        blog.AtomHandler),
-                     ('/(.*)', blog.ArticleHandler)], 
-                    debug=True)
+    application = webapp.WSGIApplication(ROUTES, debug=True)
     wsgiref.handlers.CGIHandler().run(application)
     timings.stop_run(path)
 

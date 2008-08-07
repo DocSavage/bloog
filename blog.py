@@ -48,6 +48,7 @@ import logging
 from google.appengine.ext import webapp
 from google.appengine.api import users
 from google.appengine.ext import db
+from google.appengine.ext.webapp import template
 
 import restful
 import authorized
@@ -160,10 +161,6 @@ def process_article_submission(handler, article_type):
         handler.error(400)
 
 def process_comment_submission(handler, article):
-    if not article:
-        handler.error(404)
-        return
-
     # Get and store some pieces of information from parent article.
     # TODO: See if this overhead can be avoided
     if not article.num_comments:
@@ -179,29 +176,36 @@ def process_comment_submission(handler, article):
          'title',
          'body',
          'key',
+         'thread',    # If it's given, use it.  Else generate it.
          ('published', get_datetime)])
-
+    logging.debug("Got body: %s", property_hash['body'])
     # Generate a thread string.
-    matchobj = re.match(r'[^#]+#comment-(\w+)', property_hash['key'])
-    if matchobj:
-        logging.debug("Comment has parent: %s", matchobj.group(1))
-        comment_key = matchobj.group(1)
-        thread_string = "%03d" % article.num_comments
-    else:
-        logging.debug("Comment is off main article")
-        comment_key = None
-        thread_string = "%03d" % article.num_comments
+    if 'thread' not in property_hash:
+        matchobj = re.match(r'[^#]+#comment-(?P<key>\w+)', property_hash['key'])
+        if matchobj:
+            logging.debug("Comment has parent: %s", matchobj.group('key'))
+            comment_key = matchobj.group('key')
+            # TODO -- Think about GQL injection security issue since comes from public
+            parent = model.Comment.get(db.Key(comment_key))
+            thread_string = parent.next_child_thread_string()
+        else:
+            logging.debug("Comment is off main article")
+            comment_key = None
+            thread_string = article.next_comment_thread_string()
+        if not thread_string:
+            handler.error(400)
+            return
+        property_hash['thread'] = thread_string
 
-    comment = model.Comment(
-        name = property_hash['name'],
-        email = property_hash['email'],
-        homepage = property_hash['homepage'],
-        title = property_hash['title'],
-        body = property_hash['body'],
-        article = article_key,
-        thread = thread_string)
+    property_hash['article'] = article_key
+
+    comment = model.Comment(**property_hash)
     comment.put()
-    restful.send_successful_response(handler, '/' + article.permalink)
+    # Render just this comment and send it to client
+    response = template.render("views/blog/comment.html", 
+        { 'comment': comment }, 
+        debug=config.DEBUG)
+    handler.response.out.write(response)
     view.invalidate_cache()
 
 def render_article(handler, article):
@@ -261,7 +265,6 @@ class ArticleHandler(restful.Controller):
         if not article:
             article = db.Query(model.Article). \
                          filter('permalink =', path).get()
-
         render_article(self, article)
 
     @restful.methods_via_query_allowed    
@@ -327,7 +330,11 @@ class BlogEntryHandler(restful.Controller):
         permalink = year + '/' + month + '/' + perm_stem
         article = db.Query(model.Article). \
                      filter('permalink =', permalink).get()
-        process_comment_submission(self, article)
+        if article:
+            process_comment_submission(self, article)
+        else:
+            logging.debug("No article attached to submitted comment")
+            self.error(400)
 
     @authorized.role("admin")
     def put(self, year, month, perm_stem):

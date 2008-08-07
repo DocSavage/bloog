@@ -42,7 +42,9 @@ NUM_FULL_RENDERS = {}       # Cached data for some timings.
 def invalidate_cache():
     memcache.flush_all()
 
-HANDLER_PATTERN = re.compile("<class '([^\.]*)\.(\w+)Handler'>")
+HANDLER_PATTERN = re.compile(r"<class '(?P<module_name>[^\.]*)"
+                             r"\."
+                             r"(?P<handler_name>\w+)Handler'>")
 
 def to_filename(camelcase_handler_str):
     filename = camelcase_handler_str[0].lower()
@@ -75,8 +77,8 @@ def get_view_file(handler, params={}):
     class_name = str(handler.__class__)
     nmatch = re.match(HANDLER_PATTERN, class_name)
     if nmatch:
-        module_name = to_filename(nmatch.group(1))
-        handler_name = to_filename(nmatch.group(2))
+        module_name = to_filename(nmatch.group('module_name'))
+        handler_name = to_filename(nmatch.group('handler_name'))
     else:
         module_name = None
         handler_name = None
@@ -116,6 +118,7 @@ class ViewPage(object):
 
     def full_render(self, handler, template_file, more_params):
         """Render a dynamic page from scatch."""
+        logging.debug("Doing full render using template_file: %s", template_file)
         url = handler.request.uri
         scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
 
