@@ -32,8 +32,16 @@ YAHOO.bloog.initComments = function() {
     var handleSuccess = function(o) {
         var response = o.responseText;
         // Insert the comment into the appropriate place then hide dialog.
-        parent_id = '#' + YAHOO.bloog.action.split('#')[1];
-        Ojay(parent_id).insert(response, 'after');
+        parent_id = YAHOO.bloog.action.split('#')[1];
+        if (parent_id == '') {
+            // Should be inserted at top
+            Ojay('#commentslist').insert(response, 'top');
+        }
+        else {
+            Ojay('#' + parent_id).insert(response, 'after');
+        }
+        var num_comments = Number(document.getElementById('num_comments').innerHTML) + 1;
+        Ojay('#num_comments').setContent(String(num_comments));
         YAHOO.bloog.commentDialog.hide();
     }
     var handleFailure = function(o) {
@@ -42,6 +50,7 @@ YAHOO.bloog.initComments = function() {
     var handleSubmit = function() {
         YAHOO.bloog.commentEditor.saveHTML();
         var html = YAHOO.bloog.commentEditor.get('element').value;
+        var captcha = YAHOO.util.Dom.get('captcha').value;
         var name = YAHOO.util.Dom.get('commentName').value;
         var email = YAHOO.util.Dom.get('commentEmail').value;
         var homepage = YAHOO.util.Dom.get('commentHomepage').value;
@@ -49,11 +58,12 @@ YAHOO.bloog.initComments = function() {
         // Key needs to be transmitted because fragment doesn't seem to make
         //  it through webob request object.
         var postData = 'key=' + encodeURIComponent(YAHOO.bloog.action) + '&' +
-                        'name=' + encodeURIComponent(name) + '&' +
-                        'email=' + encodeURIComponent(email) + '&' +
-                        'homepage=' + encodeURIComponent(homepage) + '&' +
-                        'title=' + encodeURIComponent(title) + '&' +
-                        'body=' + encodeURIComponent(html);
+                       'captcha=' + encodeURIComponent(captcha) + '&' +
+                       'name=' + encodeURIComponent(name) + '&' +
+                       'email=' + encodeURIComponent(email) + '&' +
+                       'homepage=' + encodeURIComponent(homepage) + '&' +
+                       'title=' + encodeURIComponent(title) + '&' +
+                       'body=' + encodeURIComponent(html);
         var cObj = YAHOO.util.Connect.asyncRequest(
             'POST', 
             YAHOO.bloog.action, 

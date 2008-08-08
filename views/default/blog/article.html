@@ -42,16 +42,14 @@
 {% endif %}
     <div id="comments_wrapper">
         <a class="replybtn" href="#">Add a comment...</a>
-        {% if article.comments %}
         <div id="comments" class="section">
-            <h3>{{ article.num_comments }} Comments</h3>
+            <h3><span id="num_comments">{{ article.num_comments }}</span> Comments</h3>
+            <ol id="commentslist">
+            {% for comment in article.comments %}
+            {% include "comment.html" %}
+            {% endfor %}
+            </ol>
         </div>
-        <ol class="commentslist">
-        {% for comment in article.comments %}
-        {% include "comment.html" %}
-        {% endfor %}
-        </ol>
-        {% endif %}
     </div>
 </div>
 {% endblock %}

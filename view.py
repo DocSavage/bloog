@@ -89,7 +89,8 @@ def get_view_file(handler, params={}):
         handler_name = params['handler_name']
 
     if module_name and handler_name:
-        filename_stem = 'views/' + module_name + '/' + handler_name
+        filename_stem = 'views/' + config.blog['theme'] + '/' + \
+                        module_name + '/' + handler_name
         logging.debug("Looking for template with stem %s", filename_stem)
         possible_roles = []
         if users.is_current_user_admin():
@@ -106,7 +107,7 @@ def get_view_file(handler, params={}):
             filename = filename_stem + role + desired_ext
             if os.path.exists(filename):
                 return filename
-    return 'views/blog/notfound.html'
+    return 'views/%s/blog/notfound.html' % config.blog['theme']
 
 class ViewPage(object):
     def __init__(self, cache_time=None):

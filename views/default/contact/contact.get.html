@@ -14,6 +14,12 @@
         </div>
         {% else %}
         <form id="htmlform" action="{{ current_url }}" method="post">
+            <p>
+                <label for="captcha">Verify you are human by entering the letters below: 
+                    {{ captcha1 }}<span class="displaynone">null</span>{{ captcha2 }}
+                </label><br />
+                <input type="text" id="captcha" name="captcha" size="22" />
+            <p>
             <p><input type="text" id="author" name="author" size="22" tabindex="1" />
                 <label for="author"><small>Name</small></label></p>
             <p><input type="text" id="email" name="email" size="22" tabindex="2" />

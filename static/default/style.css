@@ -131,12 +131,12 @@ p.tags a {font-weight:normal; margin: 0 0.8em; white-space: nowrap; color: #7777
 #comments{width:435px;padding:12px 0 0 0;}
 #comments h3,
 h3#respond{color:#555;margin-bottom:7px;}
-ol.commentslist{list-style:none;margin:5px 0 12px;}
-.commentslist li{background:#FFF url(images/lgrey_diag.gif) repeat top left;border:1px solid #BBB;margin-bottom:7px;padding:7px 0;}
-.commentslist li a{font-size:10px;background:url(images/dot.gif) repeat-x bottom left;text-transform:none;}
-.commentslist li.alt{background:#FFF;}
-.commentslist li:hover{border-color:#888;}
-.commentslist .comment_text{margin:0 7px;line-height:1.4em;overflow:hidden;}
+#commentslist{list-style:none;margin:5px 0 12px;}
+#commentslist li{background:#FFF url(images/lgrey_diag.gif) repeat top left;border:1px solid #BBB;margin-bottom:7px;padding:7px 0;}
+#commentslist li a{font-size:10px;background:url(images/dot.gif) repeat-x bottom left;text-transform:none;}
+#commentslist li.alt{background:#FFF;}
+#commentslist li:hover{border-color:#888;}
+#commentslist .comment_text{margin:0 7px;line-height:1.4em;overflow:hidden;}
 .comment_text p,
 .comment_text ul,
 .comment_text ol,
@@ -148,9 +148,9 @@ p.comment_meta span.subject{font-weight:bold;text-transform:uppercase;margin:0 0
 p.comment_meta span.user{font-weight:bold;}
 p.comment_meta span.date{font-weight:normal;text-align:right;}
 p.post_meta{font-size:11px;text-transform:uppercase;text-align:right;margin:0 7px 0 0;}
-.commentslist li.author{background:#333;color:#CCC;}
-.commentslist li.author a{color:#DDD;}
-.commentslist li.author a:hover{color:#FFF;}
+#commentslist li.author{background:#333;color:#CCC;}
+#commentslist li.author a{color:#DDD;}
+#commentslist li.author a:hover{color:#FFF;}
 #comments_closed{background:#333;color:#ccc;padding:7px 0;margin-top:12px;line-height: 1.5em;}
 p.nocomments{margin:0 12px 0 7px;}
 p.nocomments a{color:#ddd;font-weight:bold;text-decoration:underline;}

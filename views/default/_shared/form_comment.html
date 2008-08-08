@@ -1,8 +1,15 @@
+<style type="text/css">  
+p span.displaynone { display:none; }  
+</style>  
 <div id="commentDialog" class="popupDialog">
     <div class="hd">Enter Your Comment</div>
     <div class="bd">
         <form id="commentDialogForm" name="commentDialogForm" method="post" action="#">
-            <br />
+            <p>
+                <label for="captcha">Verify you are human by entering the letters below: 
+                    {{ captcha1 }}<span class="displaynone">null</span>{{ captcha2 }}
+                </label><br />
+                <input type="text" id="captcha" name="captcha" size="30" />
             <p>
                 <label for="commentName">Name:</label><br />
                 <input type="text" id="commentName" name="commentName" size="50" />
@@ -29,8 +36,8 @@
 {% if not user_is_admin %}
 <!-- Load scripts if not already loaded due to admin interface -->
 <script type="text/javascript" src="http://yui.yahooapis.com/combo?2.5.2/build/yahoo-dom-event/yahoo-dom-event.js&2.5.2/build/animation/animation-min.js&2.5.2/build/connection/connection-min.js&2.5.2/build/container/container-min.js&2.5.2/build/menu/menu-min.js&2.5.2/build/element/element-beta-min.js&2.5.2/build/button/button-min.js&2.5.2/build/editor/editor-beta-min.js&2.5.2/build/selector/selector-beta-min.js"></script>
-<script type="text/javascript" src="/static/js/ojay/js-class.js"></script>
-<script type="text/javascript" src="/static/js/ojay/core.js"></script>
+<script type="text/javascript" src="/static/default/js/ojay/js-class.js"></script>
+<script type="text/javascript" src="/static/default/js/ojay/core.js"></script>
 {% endif %}
-<script type="text/javascript" src="/static/js/bloog_comments.js"></script>
+<script type="text/javascript" src="/static/default/js/bloog_comments.js"></script>
 

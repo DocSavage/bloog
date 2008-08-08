@@ -4,7 +4,7 @@
         <meta http-equiv="Content-Type" content="{{ blog.html_type }}; charset={{ blog.charset }}" />
         <title> {{ title }}</title>
         <meta name="generator" content="Bloogle {{ bloogle_version }}" />
-        <link rel="stylesheet" href="/static/style.css" type="text/css" media="screen" />
+        <link rel="stylesheet" href="/static/default/style.css" type="text/css" media="screen" />
         <link rel="alternate" type="application/rss+xml" title="{{ blog.title }} RSS Feed" 
               href="{{ blog.root_url }}{{ blog.master_atom_url }}" />
         <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.2/build/assets/skins/sam/skin.css">
@@ -18,7 +18,7 @@
             <div id="masthead" class="fix">
                 <h1><a href="/">{{ blog.title }}</a></h1>
                 <div id="authorBlurb">
-                    <img src="/static/images/avatar.png" alt="Avatar" />
+                    <img src="/static/default/images/avatar.png" alt="Avatar" />
                     <p id="authorIntro">
                         {{ blog.description }}
                     </p>
@@ -186,12 +186,12 @@
                             </li>
                             <li>
                                 <a href="http://5thirtyone.com/grid-focus" title="Download Grid Focus by: Derek Punsalan">
-                                    <img src="/static/images/guide/grid_focus_531.gif" alt="Grid Focus - 531" />
+                                    <img src="/static/default/images/guide/grid_focus_531.gif" alt="Grid Focus - 531" />
                                 </a>
                             </li>
                             <li>
                                 <a href="http://is.derekpunsalan.com/" title="Visit Derek Punsalan...is">
-                                    <img src="/static/images/guide/is.gif" alt="Derek Punsalan...is" />
+                                    <img src="/static/default/images/guide/is.gif" alt="Derek Punsalan...is" />
                                 </a>
                             </li>
                         </ul>
@@ -266,7 +266,7 @@
         </div>
 
         <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/yahoo-dom-event/yahoo-dom-event.js"></script>
-        <script type="text/javascript" src="/static/js/bloog_base.js"></script>
+        <script type="text/javascript" src="/static/default/js/bloog_base.js"></script>
 
         {% if user_is_admin %}
         {% include "../_shared/form_editor.html" %}

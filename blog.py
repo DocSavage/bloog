@@ -104,11 +104,9 @@ def get_html(body, markup_type):
         from external.libs import textile
         return textile.textile(str(body))
     return body
-    
-def fill_optional_properties(obj, property_dict):
-    for key, value in property_dict.items():
-        if value and not key in obj.__dict__:
-            setattr(obj, key, value)
+
+def get_captcha(key):
+    return ("%X" % hash(str(key) + config.blog['title']))[:6]
 
 def process_article_edit(handler, permalink):
     # For http PUT, the parameters are passed in URIencoded string in body
@@ -161,14 +159,6 @@ def process_article_submission(handler, article_type):
         handler.error(400)
 
 def process_comment_submission(handler, article):
-    # Get and store some pieces of information from parent article.
-    # TODO: See if this overhead can be avoided
-    if not article.num_comments:
-        article.num_comments = 1
-    else:
-        article.num_comments += 1
-    article_key = article.put()
-
     property_hash = restful.get_sent_properties(handler.request.get, 
         ['name',
          'email',
@@ -177,8 +167,15 @@ def process_comment_submission(handler, article):
          'body',
          'key',
          'thread',    # If it's given, use it.  Else generate it.
+         'captcha',
          ('published', get_datetime)])
-    logging.debug("Got body: %s", property_hash['body'])
+
+    # Abort if bad captcha
+    if property_hash['captcha'] != get_captcha(article.key()):
+        logging.debug("Received captcha (%s) != %s", property_hash['captcha'], get_captcha(article.key()))
+        handler.error(401)      # Unauthorized
+        return
+
     # Generate a thread string.
     if 'thread' not in property_hash:
         matchobj = re.match(r'[^#]+#comment-(?P<key>\w+)', property_hash['key'])
@@ -197,12 +194,19 @@ def process_comment_submission(handler, article):
             return
         property_hash['thread'] = thread_string
 
-    property_hash['article'] = article_key
+    # Get and store some pieces of information from parent article.
+    # TODO: See if this overhead can be avoided
+    if not article.num_comments:
+        article.num_comments = 1
+    else:
+        article.num_comments += 1
+    property_hash['article'] = article.put()
 
     comment = model.Comment(**property_hash)
     comment.put()
     # Render just this comment and send it to client
-    response = template.render("views/blog/comment.html", 
+    response = template.render(
+        "views/%s/blog/comment.html" % config.blog['theme'], 
         { 'comment': comment }, 
         debug=config.DEBUG)
     handler.response.out.write(response)
@@ -210,9 +214,16 @@ def process_comment_submission(handler, article):
 
 def render_article(handler, article):
     if article:
+        # Generate two parts of a captcha that will use
+        # display:none in between.  This step in the anti-spam
+        # war race due to the following article:
+        # http://techblog.tilllate.com/2008/07/20/ten-methods-to-obfuscate-e-mail-addresses-compared/
+        captcha = get_captcha(article.key())
         page = view.ViewPage()
         page.render(handler, { "two_columns": article.is_big(), 
-                               "article": article })
+                               "article": article,
+                               "captcha1": captcha[:3],
+                               "captcha2": captcha[3:6] })
     else:
         # This didn't fall into any of our pages or aliases.
         # Page not found.
@@ -220,7 +231,7 @@ def render_article(handler, article):
         handler.error(404)
         view.ViewPage(cache_time=36000). \
              render(handler, {'module_name': 'blog', 
-                           'handler_name': 'notfound'})
+                              'handler_name': 'notfound'})
 
 class NotFoundHandler(webapp.RequestHandler):
     def get(self):
