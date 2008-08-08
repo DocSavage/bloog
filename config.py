@@ -1,5 +1,6 @@
 # If we're debugging, turn the cache off, etc.
-debug = True
+# Set to true if we want to have our webapp print stack traces, etc
+DEBUG = True
 
 # Don't change default_blog or default_page to prevent conflicts when merging #  Bloog source code updates.
 # Do change blog or page dictionaries at the bottom of this config module.
@@ -17,7 +18,12 @@ default_blog = {
     "master_atom_url": "/feeds/atom.xml",
     # You can override this default for each page through a handler's call to 
     #  view.ViewPage(cache_time=...)
-    "cache_time": 0 if debug else 3600,
+    "cache_time": 0 if DEBUG else 3600,
+
+    # Use the default YUI-based theme.
+    # If another string is used besides 'default', calls to static files and
+    #  use of template files in /views will go to directory by that name.
+    "theme": "default",
 
     # If you want to use legacy ID mapping for your former blog platform,
     # define it here and insert the necessary mapping code in the
@@ -88,6 +94,3 @@ default_page = {
 
 blog = default_blog
 page = default_page
-
-# Set to true if we want to have our webapp print stack traces, etc
-DEBUG = True
