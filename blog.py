@@ -170,11 +170,13 @@ def process_comment_submission(handler, article):
          'captcha',
          ('published', get_datetime)])
 
-    # Abort if bad captcha
-    if property_hash['captcha'] != get_captcha(article.key()):
-        logging.debug("Received captcha (%s) != %s", property_hash['captcha'], get_captcha(article.key()))
-        handler.error(401)      # Unauthorized
-        return
+    # If we aren't administrator, abort if bad captcha
+    if not users.is_current_user_admin():
+        if property_hash['captcha'] != get_captcha(article.key()):
+            logging.debug("Received captcha (%s) != %s", 
+                          property_hash['captcha'], get_captcha(article.key()))
+            handler.error(401)      # Unauthorized
+            return
 
     # Generate a thread string.
     if 'thread' not in property_hash:

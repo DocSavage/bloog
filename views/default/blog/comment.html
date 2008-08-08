@@ -1,8 +1,8 @@
 <li id="comment-{{ comment.key }}" class="alt item indent{{ comment.get_indentation }}">
     <div class="fix">
         <p class="comment_meta">
-            <span class="subject">{{ comment.title|default:""}}</span> by 
-            <span class="user">{{ comment.name|default:"" }}</span>
+            <span class="subject">{{ comment.title|default:"Re: Article"}}</span> by 
+            <span class="user">{{ comment.name|default:"Anonymous" }}</span>
             <span class="date">({{ comment.published.date }})</span>
         </p>
         <div class="comment_text">

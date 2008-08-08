@@ -128,7 +128,7 @@ ul#imgLinks{list-style:none;margin:7px 0;}
 p.tags a {font-weight:normal; margin: 0 0.8em; white-space: nowrap; color: #777777; background: transparent url(images/dot.gif) repeat-x scroll left bottom;}
 
 /* style me some comments and inputs */
-#comments{width:435px;padding:12px 0 0 0;}
+#comments{padding:12px 0 0 0;}
 #comments h3,
 h3#respond{color:#555;margin-bottom:7px;}
 #commentslist{list-style:none;margin:5px 0 12px;}
