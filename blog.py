@@ -303,18 +303,19 @@ class ArticleHandler(restful.Controller):
         """
         # TODO: Add DELETE for articles off root like blog entry DELETE.
         model_class = path.lower()
+        logging.debug("ArticleHandler#delete on %s", path)
 
         def delete_entity(query):
             targets = query.fetch(limit=1)
             if len(targets) > 0:
-                permalink = targets[0].permalink
-                logging.debug('Deleting %s %s', model_class, permalink)
+                title = targets[0].title
+                logging.debug('Deleting %s %s', model_class, title)
                 targets[0].delete()
-                self.response.out.write('Deleted ' + permalink)
+                self.response.out.write('Deleted ' + title)
                 view.invalidate_cache()
             else:
-                self.error(404)
-
+                self.response.set_status(204, 'No more ' + model_class + ' entities')
+                
         if model_class == 'article':
             query = model.Article.all()
             delete_entity(query)
@@ -383,9 +384,7 @@ class SearchHandler(restful.Controller):
         page = view.ViewPage()
         page.render_query(
             self, 'articles', 
-            # model.Article.all().search(search_term).order('-published'), 
-            db.Query(model.Article). \
-               filter('tags =', search_term).order('-published'), 
+            model.Article.all().search(search_term).order('-published'), 
             {'search_term': search_term})
 
 class YearHandler(restful.Controller):

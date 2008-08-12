@@ -37,13 +37,16 @@ def get_thread_string(article, cur_thread_string):
         return None         # Only allow 999 comments on each tree level
     return cur_thread_string + "%03d" % (num_comments + 1)
 
-# The below was pulled due to computational quota issues on large posts.
-# Works with dev server but not after uploading to cloud.
+# Searchable model and entities were derived from code in SDK at
+# under google.appengine.ext import search.  Modifications were
+# necessary to decrease computation that tripped quotas.
+import search
 
-# from google.appengine.ext import search
-# class Article(search.SearchableModel):
-
-class Article(db.Model):
+class Article(search.SearchableModel):
+    # The following string-based properties shouldn't be indexed
+    unsearchable_properties = [
+        'permalink', 'legacy_id', 'article_type', 'excerpt', 'html', 'format'
+    ]
     permalink = db.StringProperty(required=True)
     # Useful for aliasing of old urls
     legacy_id = db.StringProperty()

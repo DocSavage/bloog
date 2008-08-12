@@ -89,8 +89,10 @@
                 <div id="midCol">
                     {% block search %}
                     <div id="searchWrap">
-                        <div id="searchcontrol"></div>
-                        <!--<input id="searchsubmit" type="image" src="/static/images/btn_search.gif" alt="Search" />-->
+                        <form method="get" id="searchForm" action="/search">
+                            <input type="text" value="{{ searchterm }}" name="s" id="s" />
+                            <input id="searchsubmit" type="image" src="/static/default/images/btn_search.gif" alt="Search" />
+                        </form>
                     </div>
                     {% endblock %}
 
@@ -274,28 +276,6 @@
         {% endif %}
 
         {% block end_body %}
-        {% endblock %}
-
-        {% block ajax_search_api %}
-        <script type="text/javascript" src="http://www.google.com/jsapi?key=ABQIAAAArkJQygN7d9x7IYE-cqa7pxRplEICxsDn12H6XOoG8NhvPWEaehQp5DHoozVgJSYne7zLwa0go_ST_g">
-        </script>
-        <style type="text/css">
-        #searchWrap .gsc-control { width: 250px; }
-        </style>
-
-        <script type="text/javascript">
-            google.load("search", "1");
-            function searchInitialize() {
-                var searchControl = new google.search.SearchControl();
-                var bloogSearch = new google.search.WebSearch();
-                bloogSearch.setUserDefinedLabel("{{ blog.title }}");
-                bloogSearch.setUserDefinedClassSuffix("siteSearch");
-                bloogSearch.setSiteRestriction("{{ blog.root_url }}")
-                searchControl.addSearcher(bloogSearch);
-                searchControl.draw(document.getElementById("searchcontrol"));
-            }
-            google.setOnLoadCallback(searchInitialize);
-        </script>
         {% endblock %}
     </body>
 </html>

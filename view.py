@@ -88,10 +88,13 @@ def get_view_file(handler, params={}):
     if 'handler_name' in params:
         handler_name = params['handler_name']
 
+    view_folder = os.path.join(
+        os.path.dirname(__file__), 
+        'views',
+        config.blog['theme'])
     if module_name and handler_name:
-        filename_stem = 'views/' + config.blog['theme'] + '/' + \
-                        module_name + '/' + handler_name
-        logging.debug("Looking for template with stem %s", filename_stem)
+        filename_prefix = os.path.join(view_folder, module_name, handler_name)
+        logging.debug("Looking for template with prefix %s", filename_prefix)
         possible_roles = []
         if users.is_current_user_admin():
             possible_roles.append('.admin.')
@@ -100,14 +103,14 @@ def get_view_file(handler, params={}):
         possible_roles.append('.')
         # Check possible template file names in order of decreasing priority
         for role in possible_roles:
-            filename = filename_stem + role + verb + '.' + desired_ext
+            filename = filename_prefix + role + verb + '.' + desired_ext
             if os.path.exists(filename):
                 return filename
         for role in possible_roles:
-            filename = filename_stem + role + desired_ext
+            filename = filename_prefix + role + desired_ext
             if os.path.exists(filename):
                 return filename
-    return 'views/%s/blog/notfound.html' % config.blog['theme']
+    return view_folder + 'blog/notfound.html'
 
 class ViewPage(object):
     def __init__(self, cache_time=None):
@@ -180,10 +183,7 @@ class ViewPage(object):
         include:
             'ext': 'xml' (or any other format type)
         """
-        view_file = get_view_file(handler, params)
-
-        dirname = os.path.dirname(__file__)
-        template_file = os.path.join(dirname, view_file)
+        template_file = get_view_file(handler, params)
         logging.debug("Using template at %s", template_file)
         output = self.render_or_get_cache(handler, template_file, params)
         handler.response.out.write(output)

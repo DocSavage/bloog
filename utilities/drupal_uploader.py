@@ -49,7 +49,6 @@ import getopt
 
 import datetime
 import getpass
-import logging
 import mimetypes
 import os
 import re
@@ -273,6 +272,7 @@ class DrupalConverter(object):
                     article['body'] = self.get_html(raw_body=row[11], 
                                                     markup_type=cur_format)
                     article['html'] = article['body']
+
                     # Because Drupal lets you intermix textile with other 
                     # markup, just convert it all to HTML
                     article['format'] = 'html'
