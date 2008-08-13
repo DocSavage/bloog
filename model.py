@@ -20,9 +20,11 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
 # DEALINGS IN THE SOFTWARE.
 
-from google.appengine.ext import db
-import logging
 import config
+import logging
+
+from google.appengine.api import memcache
+from google.appengine.ext import db
 
 # Handle generation of thread strings
 def get_thread_string(article, cur_thread_string):
@@ -71,7 +73,8 @@ class Article(search.SearchableModel):
     assoc_dict = db.BlobProperty()
     # To prevent full query when just showing article headlines
     num_comments = db.IntegerProperty(default=0)
-    tags = db.ListProperty(db.Category)
+    # Use keys instead of db.Category for consolidation of tag names
+    tags = db.ListProperty(db.Key)
 
     def get_comments(self):
         """Return comments lexicographically sorted on thread string"""
@@ -148,3 +151,62 @@ class Comment(db.Model):
         'Returns thread string for next child of this comment'
         return get_thread_string(self.article, self.thread + '.')
 
+class MemcachedModel(db.Model):
+    """MemcachedModel adds memcached all() retrieval through list().
+    
+    It adds memcache clearing into Model methods, both class
+    and instance, that alter the datastore.  The model also
+    provides a namespace for children in memcache.
+    
+    Currently, this class does not care about failed attempts
+    to alter the datastore, so uncompleted deletes and puts
+    will still clear the cache.
+    """
+    def delete(self):
+        super(MemcachedModel, self).delete()
+        memcache.delete(self.__class__.memcache_key())
+
+    def put(self):
+        key = super(MemcachedModel, self).put()
+        memcache.delete(self.__class__.memcache_key())
+        return key
+
+    def _to_repr(self):
+        entity = {}
+        self._to_entity(entity)
+        return repr(entity)
+
+    @classmethod
+    def get_or_insert(cls, key_name, **kwds):
+        obj = super(MemcachedModel, cls).get_or_insert()
+        memcache.delete(cls.memcache_key())
+        return obj
+
+    @classmethod
+    def memcache_key(cls):
+        return 'PS_' + cls.__name__ + '_ALL'
+
+    # TODO -- Verify security issues involved with eval of repr.
+    #  Since in Bloog, only admin is creating tags, not an issue,
+    #  but consider possible security issues with injection
+    #  of user data.
+    @classmethod
+    def list(cls, nocache=False):
+        """Returns a list of up to 1000 dicts of model values.
+           Unless nocache is set to True, memcache will be checked first.
+        Returns:
+          List of dicts with each dict holding an entities property names
+          and values.
+        """
+        cached_list = memcache.get(cls.memcache_key())
+        if nocache or cached_list is None:
+            q = db.Query(cls)
+            objs = q.fetch(limit=1000)
+            cached_list = '[' + ','.join([obj._to_repr() for obj in objs]) + ']'
+            memcache.set(cls.memcache_key(), cached_list)
+        return eval(cached_list)
+
+
+class Tag(MemcachedModel):
+    name = db.StringProperty(required=True)
+    count = db.IntegerProperty(default=0)
