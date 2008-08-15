@@ -41,7 +41,11 @@
     </div>
 {% endif %}
     <div id="comments_wrapper">
+        {% if allow_comments %}
         <a class="replybtn" href="#">Add a comment...</a>
+        {% else %}
+        <p>Comments are closed</p>
+        {% endif %}
         <div id="comments" class="section">
             <h3><span id="num_comments">{{ article.num_comments }}</span> Comments</h3>
             <ol id="commentslist">
@@ -55,6 +59,8 @@
 {% endblock %}
 
 {% block end_body %}
+{% if allow_comments %}
 {% include "../_shared/form_comment.html" %}
+{% endif %}
 {% endblock %}
 

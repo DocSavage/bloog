@@ -100,10 +100,14 @@
                     <div class="middle_links">
                         <h3>Categories</h3>
                         <p class="tags">
+                        {% if blog_tags %}
                             {% for tag in blog_tags %}
                             <a href="/tag/{{ tag.name|urlencode }}">{{ tag.name }}</a>
                             ({{ tag.count }})<br />
                             {% endfor %}
+                        {% else %}
+                            No posts have been tagged yet.
+                        {% endif %}
                         </p>
                     </div>
                     {% endblock %}
