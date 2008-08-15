@@ -233,8 +233,16 @@ def render_article(handler, article):
         # war race due to the following article:
         # http://techblog.tilllate.com/2008/07/20/ten-methods-to-obfuscate-e-mail-addresses-compared/
         captcha = get_captcha(article.key())
+        two_columns = article.two_columns
+        if two_columns is None:
+            two_columns = article.is_big()
+        allow_comments = article.allow_comments
+        if allow_comments is None:
+            age = (datetime.datetime.now() - article.published).days
+            allow_comments = (age <= config.blog['days_can_comment'])
         page = view.ViewPage()
-        page.render(handler, { "two_columns": article.is_big(), 
+        page.render(handler, { "two_columns": two_columns,
+                               "allow_comments": allow_comments,
                                "article": article,
                                "captcha1": captcha[:3],
                                "captcha2": captcha[3:6] })

@@ -24,6 +24,7 @@ import config
 from counter import Counter
 
 import logging
+import time
 
 from google.appengine.api import memcache
 from google.appengine.ext import db
@@ -77,6 +78,8 @@ class Article(search.SearchableModel):
     num_comments = db.IntegerProperty(default=0)
     # Use keys instead of db.Category for consolidation of tag names
     tags = db.ListProperty(db.Key)
+    two_columns = db.BooleanProperty()
+    allow_comments = db.BooleanProperty()
 
     def get_comments(self):
         """Return comments lexicographically sorted on thread string"""
@@ -129,6 +132,7 @@ class Comment(db.Model):
     published = db.DateTimeProperty(auto_now_add=True)
     article = db.ReferenceProperty(Article)
 
+    thread = db.StringProperty(required=True)
     # Thread string describes the tree using 3 digit numbers.
     # This allows lexicographical sorting to order comments
     # and easy indentation computation based on the string depth.
@@ -142,7 +146,6 @@ class Comment(db.Model):
     #   response to a parent comment, and we won't have
     #   nesting that causes our thread string > 500 bytes.
     #   TODO -- Put in error checks
-    thread = db.StringProperty(required=True)
 
     def get_indentation(self):
         # Indentation is based on degree of nesting in "thread"
@@ -178,15 +181,27 @@ class MemcachedModel(db.Model):
     def _to_repr(self):
         # Handle properties
         entity = {}
+        time1 = time.time()
         self._to_entity(entity)
+        time2 = time.time()
+        logging.debug("  Time for _to_entity: %f", time2 - time1)
         # Add properties/methods in class variable 'add_to_list'
         for token in self.__class__.list_includes:
             elems = token.split('.')
+            time1 = time.time()
             value = getattr(self, elems[0])
+            time2 = time.time()
+            logging.debug("  Time to get %s: %f", elems[0], time2 - time1)
             for elem in elems[1:]:
                 value = getattr(value, elem)
+                time3 = time.time()
+                logging.debug("  Time to get %s: %f", elem, time3 - time2)
+                time2 = time3
             entity[elems[-1]] = value
-        return repr(entity)
+        time3 = time.time()
+        entity_string = repr(entity)
+        logging.debug("  Time to repr entity: %f", time.time() - time3)
+        return entity_string
 
     @classmethod
     def get_or_insert(cls, key_name, **kwds):
@@ -211,13 +226,28 @@ class MemcachedModel(db.Model):
           List of dicts with each dict holding an entities property names
           and values.
         """
+        time1 = time.time()
         list_repr = memcache.get(cls.memcache_key())
+        time2 = time.time()
+        logging.debug("Time for list_repr memcache get: %f", time2 - time1)
         if nocache or list_repr is None:
+            logging.debug("%s.list being regenerated", cls.__name__)
+            time3 = time.time()
             q = db.Query(cls)
             objs = q.fetch(limit=1000)
+            time4 = time.time()
             list_repr = '[' + ','.join([obj._to_repr() for obj in objs]) + ']'
+            time5 = time.time()
             memcache.set(cls.memcache_key(), list_repr)
-        return eval(list_repr)
+            time6 = time.time()
+            logging.debug("Time to fetch: %f", time4 - time3)
+            logging.debug("Time for repr: %f", time5 - time4)
+            logging.debug("Time for memcache set: %f", time6 - time5)
+        time1 = time.time()
+        values = eval(list_repr)
+        time2 = time.time()
+        logging.debug("Time for eval: %f", time2 - time1)
+        return values
 
 
 class Tag(MemcachedModel):

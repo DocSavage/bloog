@@ -22,6 +22,7 @@
 
 import random
 import logging
+import time
 
 from google.appengine.api import memcache
 from google.appengine.ext import db
@@ -73,9 +74,14 @@ http://sites.google.com/site/io/building-scalable-web-applications-with-google-a
         total = memcache.get(self.memcache_key())
         if nocache or total is None:
             total = 0
+            logging.debug("Getting count for %s", self.key().name())
+            time1 = time.time()
             for shard in self.shards:
                 total += shard.count
-            logging.debug("Got %d for %s", total, self.key().name())
+                time2 = time.time()
+                logging.debug("    Time to access shard %s (cumm count %d): %f", 
+                              shard.key().name(), total, time2 - time1)
+                time1 = time2
             memcache.add(self.memcache_key(), str(total), self.cache_time)
             return total
         else:
@@ -130,7 +136,10 @@ class CounterShard(db.Model):
             key = shard.put()
             logging.debug("CounterShard put with key_name = %s", key.name())
         try:
+            time1 = time.time()
             db.run_in_transaction(txn)
+            time2 = time.time()
+            logging.debug("Shard %s took %f s", shard_key_name, time2 - time1)
             return True
         except db.TransactionFailedError():
             return False
