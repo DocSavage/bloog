@@ -110,7 +110,7 @@ def get_html(body, markup_type):
     return body
 
 def get_captcha(key):
-    return ("%X" % hash(str(key) + config.blog['title']))[:6]
+    return ("%X" % abs(hash(str(key) + config.blog['title'])))[:6]
 
 def process_article_edit(handler, permalink):
     # For http PUT, the parameters are passed in URIencoded string in body
@@ -320,10 +320,15 @@ class ArticleHandler(restful.Controller):
         def delete_entity(query):
             targets = query.fetch(limit=1)
             if len(targets) > 0:
-                title = targets[0].title
+                if hasattr(targets[0], 'title'):
+                    title = targets[0].title
+                elif hasattr(targets[0], 'name'):
+                    title = targets[0].name
+                else:
+                    title = ''
                 logging.debug('Deleting %s %s', model_class, title)
                 targets[0].delete()
-                self.response.out.write('Deleted ' + title)
+                self.response.out.write('Deleted ' + model_class + ' ' + title)
                 view.invalidate_cache()
             else:
                 self.response.set_status(204, 'No more ' + model_class + ' entities')
@@ -377,7 +382,7 @@ class BlogEntryHandler(restful.Controller):
         article = db.Query(model.Article). \
                      filter('permalink =', permalink).get()
         for tag in article.tags:
-            tag.counter.decrement()
+            db.get(tag).counter.decrement()
         article.delete()
         view.invalidate_cache()
         restful.send_successful_response(self, "/")

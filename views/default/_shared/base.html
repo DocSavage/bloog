@@ -102,7 +102,7 @@
                         <p class="tags">
                             {% for tag in blog_tags %}
                             <a href="/tag/{{ tag.name|urlencode }}">{{ tag.name }}</a>
-                            ({{ tag.count }})
+                            ({{ tag.count }})<br />
                             {% endfor %}
                         </p>
                     </div>
