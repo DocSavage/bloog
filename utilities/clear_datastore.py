@@ -175,6 +175,8 @@ def main(argv):
                 pass
             while webserver.delete(app_url + '/Comment'):
                 pass
+            while webserver.delete(app_url + '/Tag'):
+                pass
 
     except UsageError, err:
         print >> sys.stderr, sys.argv[0].split("/")[-1] + ": " + str(err.msg)

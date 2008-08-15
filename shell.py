@@ -72,7 +72,8 @@ INITIAL_UNPICKLABLES = [
   'import sys',
   'from google.appengine.ext import db',
   'from google.appengine.api import users',
-  'import model'
+  'import model',
+  'import counter'
   ]
 
 

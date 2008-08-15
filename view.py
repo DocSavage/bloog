@@ -29,6 +29,8 @@ from google.appengine.api import users
 from google.appengine.ext.webapp import template
 from google.appengine.api import memcache
 
+from model import Tag       # Might rethink if this is leaking into view
+
 import config
 import copy
 import time
@@ -131,6 +133,8 @@ class ViewPage(object):
             NUM_FULL_RENDERS[path] = 0
         NUM_FULL_RENDERS[path] += 1     # This lets us see % of cached views
                                         # in /admin/timings (see timings.py)
+        tags = Tag.list()
+        logging.debug("tags = %s", tags)
         # Define some parameters it'd be nice to have in views by default.
         template_params = {
             "current_url": url,
@@ -139,7 +143,8 @@ class ViewPage(object):
             "user_is_admin": users.is_current_user_admin(),
             "login_url": users.create_login_url(handler.request.uri),
             "logout_url": users.create_logout_url(handler.request.uri),
-            "blog": config.blog or config.default_blog
+            "blog": config.blog or config.default_blog,
+            "blog_tags": tags
         }
         template_params.update(config.page or config.default_page)
         template_params.update(more_params)

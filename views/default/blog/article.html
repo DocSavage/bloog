@@ -24,7 +24,7 @@
     <div id="more_reading">
         <p class="tags">Category: 
             {% for tag in article.tags %}
-                <a href="/tag/{{ tag|urlencode }}">{{ tag }}</a>
+                <a href="/tag/{{ tag.name|urlencode }}">{{ tag.name }}</a>
             {% endfor %}
         </p>
     </div>

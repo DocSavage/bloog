@@ -21,6 +21,8 @@
 # DEALINGS IN THE SOFTWARE.
 
 import config
+from counter import Counter
+
 import logging
 
 from google.appengine.api import memcache
@@ -162,6 +164,8 @@ class MemcachedModel(db.Model):
     to alter the datastore, so uncompleted deletes and puts
     will still clear the cache.
     """
+    list_includes = []
+
     def delete(self):
         super(MemcachedModel, self).delete()
         memcache.delete(self.__class__.memcache_key())
@@ -172,13 +176,21 @@ class MemcachedModel(db.Model):
         return key
 
     def _to_repr(self):
+        # Handle properties
         entity = {}
         self._to_entity(entity)
+        # Add properties/methods in class variable 'add_to_list'
+        for token in self.__class__.list_includes:
+            elems = token.split('.')
+            value = getattr(self, elems[0])
+            for elem in elems[1:]:
+                value = getattr(value, elem)
+            entity[elems[-1]] = value
         return repr(entity)
 
     @classmethod
     def get_or_insert(cls, key_name, **kwds):
-        obj = super(MemcachedModel, cls).get_or_insert()
+        obj = super(MemcachedModel, cls).get_or_insert(key_name, **kwds)
         memcache.delete(cls.memcache_key())
         return obj
 
@@ -190,6 +202,7 @@ class MemcachedModel(db.Model):
     #  Since in Bloog, only admin is creating tags, not an issue,
     #  but consider possible security issues with injection
     #  of user data.
+    # TODO -- Break this up so we won't trip quota on huge lists.
     @classmethod
     def list(cls, nocache=False):
         """Returns a list of up to 1000 dicts of model values.
@@ -198,15 +211,39 @@ class MemcachedModel(db.Model):
           List of dicts with each dict holding an entities property names
           and values.
         """
-        cached_list = memcache.get(cls.memcache_key())
-        if nocache or cached_list is None:
+        list_repr = memcache.get(cls.memcache_key())
+        if nocache or list_repr is None:
             q = db.Query(cls)
             objs = q.fetch(limit=1000)
-            cached_list = '[' + ','.join([obj._to_repr() for obj in objs]) + ']'
-            memcache.set(cls.memcache_key(), cached_list)
-        return eval(cached_list)
+            list_repr = '[' + ','.join([obj._to_repr() for obj in objs]) + ']'
+            memcache.set(cls.memcache_key(), list_repr)
+        return eval(list_repr)
 
 
 class Tag(MemcachedModel):
-    name = db.StringProperty(required=True)
-    count = db.IntegerProperty(default=0)
+    list_includes = ['counter.count', 'name']
+
+    def delete(self):
+        counter = Counter.get_by_key_name('Tag' + self.key().name())
+        counter.delete()
+        super(Tag, self).delete()
+
+    def get_counter(self):
+        return Counter.get_or_insert('Tag' + self.key().name())
+
+    def set_counter(self, value):
+        # TODO -- Not implemented yet
+        pass
+
+    def delete_counter(self):
+        counter = Counter.get_by_key_name('Tag' + self.key().name())
+        if counter:
+            counter.delete()
+
+    counter = property(get_counter, set_counter, delete_counter)
+
+    def get_name(self):
+        return self.key().name()
+
+    name = property(get_name)
+    

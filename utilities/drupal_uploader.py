@@ -296,20 +296,19 @@ class DrupalConverter(object):
 
         for article in articles:
             # Add tags to each article by looking at term_node table
-            article['tags'] = ''
             sql = "SELECT d.tid FROM term_data d, term_node n " \
                   "WHERE d.tid = n.tid AND n.nid = " + \
                   str(article['legacy_id'])
             self.cursor.execute(sql)
             rows = self.cursor.fetchall()
+            tag_names = set()
             for row in rows:
                 tid = row[0]
                 # Walk up the term tree and add all tags along path to root
                 while tid:
-                    article['tags'] += tags[tid]['name']
+                    tag_names.update([tags[tid]['name']])
                     tid = tags[tid]['parent']
-                    if tid:
-                        article['tags'] += ','
+            article['tags'] = ','.join(tag_names)
 
             # Store the article by posting to either root (if "page") 
             # or blog month (if "blog" entry)

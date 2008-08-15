@@ -41,11 +41,6 @@ default_page = {
         { "title": "Contact", "description": "Send me a note", 
           "url": "/contact"},
     ],
-    # Currently tags are hardwired to prevent datastore access.  
-    # Might shift to lookup + cache.
-    "tags": [
-        'AppEngine', 'Bloog', 'Google', 'GData API', 'Another Unused Tag'
-    ],
     "featuredMyPages": {
         "title": "Bloog Development",
         "description": "Get involved",

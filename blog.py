@@ -88,9 +88,13 @@ def get_format(format_string):
         format_string = 'html'
     return format_string
 
-def get_tags(tag_string):
-    if tag_string:
-        return [db.Category(s.strip()) for s in tag_string.split(",") 
+def get_tag_key(tag_string):
+    obj = model.Tag.get_or_insert(tag_string)
+    return obj.key()
+
+def get_tags(tags_string):
+    if tags_string:
+        return [get_tag_key(s.strip()) for s in tags_string.split(",") 
                 if s != '']
     return None
     
@@ -125,8 +129,14 @@ def process_article_edit(handler, permalink):
 
     if property_hash:
         article = db.Query(model.Article).filter('permalink =', permalink).get()
+        before_tags = set(article.tags)
         for key,value in property_hash.iteritems():
             setattr(article, key, value)
+        after_tags = set(article.tags)
+        for removed_tag in before_tags - after_tags:
+            db.get(removed_tag).counter.decrement()
+        for added_tag in after_tags - before_tags:
+            db.get(added_tag).counter.increment()
         article.put()
         restful.send_successful_response(handler, '/' + article.permalink)
         view.invalidate_cache()
@@ -153,6 +163,8 @@ def process_article_submission(handler, article_type):
             {'relevant_links': handler.request.get('relevant_links'),       
              'amazon_items': handler.request.get('amazon_items')})
         article.put()
+        for tag in article.tags:
+            db.get(tag).counter.increment()
         restful.send_successful_response(handler, '/' + article.permalink)
         view.invalidate_cache()
     else:
@@ -294,7 +306,7 @@ class ArticleHandler(restful.Controller):
     @authorized.role("admin")
     def delete(self, path):
         """
-        By using DELETE on /article or /comment, you can delete the first 
+        By using DELETE on /Article, /Comment, /Tag, you can delete the first 
          entity of the desired kind.
         This is useful for writing utilities like clear_datastore.py.  
         TODO - Once we write a DELETE for specific entities, it makse sense to 
@@ -322,6 +334,9 @@ class ArticleHandler(restful.Controller):
         elif model_class == 'comment':
             query = model.Comment.all()
             delete_entity(query)
+        elif model_class == 'tag':
+            query = model.Tag.all()
+            delete_entity(query)
         else:
             self.error(404)
 
@@ -334,7 +349,6 @@ class BlogEntryHandler(restful.Controller):
         article = db.Query(model.Article). \
                      filter('permalink =', 
                             year + '/' + month + '/' + perm_stem).get()
-
         render_article(self, article)
 
     @restful.methods_via_query_allowed    
@@ -362,6 +376,8 @@ class BlogEntryHandler(restful.Controller):
         logging.debug("Deleting blog entry %s", permalink)
         article = db.Query(model.Article). \
                      filter('permalink =', permalink).get()
+        for tag in article.tags:
+            tag.counter.decrement()
         article.delete()
         view.invalidate_cache()
         restful.send_successful_response(self, "/")
@@ -371,11 +387,12 @@ class TagHandler(restful.Controller):
         tag =  re.sub('(%25|%)(\d\d)', 
                       lambda cmatch: chr(string.atoi(cmatch.group(2), 16)),                 
                       encoded_tag)   # No urllib.unquote in AppEngine?
-
+        tag_key = db.Key.from_path('Tag', tag)
         page = view.ViewPage()
         page.render_query(
             self, 'articles', 
-            db.Query(model.Article).filter('tags =', tag).order('-published'), 
+            db.Query(model.Article).filter('tags =',        
+                                           tag_key).order('-published'), 
             {'tag': tag})
 
 class SearchHandler(restful.Controller):
