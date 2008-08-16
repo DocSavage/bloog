@@ -136,6 +136,7 @@ h3#respond{color:#555;margin-bottom:7px;}
 #commentslist li a{font-size:10px;background:url(images/dot.gif) repeat-x bottom left;text-transform:none;}
 #commentslist li.alt{background:#FFF;}
 #commentslist li:hover{border-color:#888;}
+#commentslist .comment_text li{list-style:normal;background:#FFF;border:none;margin:0 0 0 14px;padding:0;}
 #commentslist .comment_text{margin:0 7px;line-height:1.4em;overflow:hidden;}
 .comment_text p,
 .comment_text ul,

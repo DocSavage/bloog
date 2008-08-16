@@ -103,7 +103,33 @@ YAHOO.bloog.initComments = function() {
             height: '150px',
             width: '500px',
             dompath: false,
-            animate: true
+            animate: true,
+            toolbar: {
+                titlebar: 'Comment',
+                buttons: [
+                    { group: 'fontstyle', label: 'Font Style',
+                        buttons: [
+                            { type: 'push', label: 'Bold', value: 'bold' },
+                            { type: 'push', label: 'Italic', value: 'italic' },
+                            { type: 'push', label: 'Underline', value: 'underline' }
+                        ]
+                    },
+                    { type: 'separator' },
+                    { group: 'indentlist', label: 'Lists',
+                        buttons: [ 
+                            { type: 'push', label: 'Create an Unordered List', value: 'insertunorderedlist' }, 
+                            { type: 'push', label: 'Create an Ordered List', value: 'insertorderedlist' } 
+                        ]
+                    },
+                    { type: 'separator' },
+                    { group: 'insertitem', label: 'Insert Item',
+                        buttons: [ 
+                            { type: 'push', label: 'HTML Link CTRL + SHIFT + L', value: 'createlink' }, 
+                            { type: 'push', label: 'Insert Image', value: 'insertimage', disabled: true } 
+                        ]
+                    }
+                ]
+            }
         });
     YAHOO.bloog.commentEditor.render();
 

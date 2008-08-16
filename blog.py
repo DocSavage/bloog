@@ -112,6 +112,17 @@ def get_html(body, markup_type):
 def get_captcha(key):
     return ("%X" % abs(hash(str(key) + config.blog['title'])))[:6]
 
+def sanitize_html(html):
+    from utils import sanitizer
+    try:
+        clean_html = sanitizer.sanitize_html(html, 
+                                             allow_attributes=['href', 'src'],
+                                             blacklist_tags=['img'])
+        return clean_html
+    except sanitizer.DangerousHTMLError, e:
+        logging.error("Sanitized HTML has dangerous elements: %s", e.value)
+        return None
+
 def process_article_edit(handler, permalink):
     # For http PUT, the parameters are passed in URIencoded string in body
     body = handler.request.body
@@ -180,6 +191,12 @@ def process_comment_submission(handler, article):
          'thread',    # If it's given, use it.  Else generate it.
          'captcha',
          ('published', get_datetime)])
+    html = sanitize_html(property_hash['body'])
+    if html is None:
+        handler.error(400)
+        return
+    else:
+        property_hash['body'] = html
 
     # If we aren't administrator, abort if bad captcha
     if not users.is_current_user_admin():
@@ -189,6 +206,9 @@ def process_comment_submission(handler, article):
                           get_captcha(article.key()))
             handler.error(401)      # Unauthorized
             return
+    if 'key' not in property_hash:
+        handler.error(401)
+        return
 
     # Generate a thread string.
     if 'thread' not in property_hash:
@@ -303,7 +323,6 @@ class ArticleHandler(restful.Controller):
         render_article(self, article)
 
     @restful.methods_via_query_allowed    
-    @authorized.role("user")
     def post(self, path):
         article = db.Query(model.Article).filter('permalink =', path).get()
         process_comment_submission(self, article)
@@ -367,7 +386,6 @@ class BlogEntryHandler(restful.Controller):
         render_article(self, article)
 
     @restful.methods_via_query_allowed    
-    @authorized.role("user")
     def post(self, year, month, perm_stem):
         logging.debug("Adding comment for blog entry %s", self.request.path)
         permalink = year + '/' + month + '/' + perm_stem
