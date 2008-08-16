@@ -41,7 +41,6 @@ import view
 import time
 import urlparse
 import os
-import logging
 
 def start_run():
     url = os.environ['PATH_INFO']
@@ -65,9 +64,7 @@ def start_run():
 
 def stop_run(path):
     global TIMINGS
-    logging.debug("In stop_run(%s)", path)
     if path and path in TIMINGS:
-        logging.debug("Storing data into %s", path)
         timing = TIMINGS[path]
         elapsed_time = time.time() - timing["start_time"]
         timing["duration"] += elapsed_time
@@ -81,7 +78,6 @@ def stop_run(path):
 class TimingHandler(restful.Controller):
     @authorized.role("admin")
     def get(self):
-        logging.debug("Timing Handler")
         global TIMINGS
         stats = []
         total_time = 0.0
@@ -92,7 +88,6 @@ class TimingHandler(restful.Controller):
             
             full_renders = 0
             if key in view.NUM_FULL_RENDERS:
-                logging.debug("Found %d views for %s", view.NUM_FULL_RENDERS[key], key)
                 full_renders = view.NUM_FULL_RENDERS[key]
                 total_full_renders += full_renders
             url_timing = TIMINGS[key]

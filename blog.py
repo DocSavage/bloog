@@ -44,7 +44,6 @@ import os
 import cgi
 
 import logging
-import time
 
 from google.appengine.ext import webapp
 from google.appengine.api import users
@@ -125,8 +124,7 @@ def process_article_edit(handler, permalink):
          ('format', get_format),
          ('updated', get_datetime),
          ('tags', get_tags),
-         ('html', get_html, 'body', 'format')]
-    )
+         ('html', get_html, 'body', 'format')])
 
     if property_hash:
         article = db.Query(model.Article).filter('permalink =', permalink).get()
@@ -157,15 +155,13 @@ def process_article_submission(handler, article_type):
          ('permalink', permalink_funcs[article_type], 'title', 'published')])
 
     if property_hash:
-        property_hash['format'] = 'html'   # We are converting everything to HTML
+        property_hash['format'] = 'html'   # For now, convert all to HTML
         property_hash['article_type'] = article_type
         article = model.Article(**property_hash)
         article.set_associated_data(
-            {'relevant_links': handler.request.get('relevant_links'),       
+            {'relevant_links': handler.request.get('relevant_links'),
              'amazon_items': handler.request.get('amazon_items')})
-        time1 = time.time()
         article.put()
-        logging.debug("Time to put article (%s): %f", article.title, time.time() - time1)
         for tag in article.tags:
             db.get(tag).counter.increment()
         restful.send_successful_response(handler, '/' + article.permalink)
@@ -188,18 +184,21 @@ def process_comment_submission(handler, article):
     # If we aren't administrator, abort if bad captcha
     if not users.is_current_user_admin():
         if property_hash['captcha'] != get_captcha(article.key()):
-            logging.debug("Received captcha (%s) != %s", 
-                          property_hash['captcha'], get_captcha(article.key()))
+            logging.info("Received captcha (%s) != %s", 
+                          property_hash['captcha'], 
+                          get_captcha(article.key()))
             handler.error(401)      # Unauthorized
             return
 
     # Generate a thread string.
     if 'thread' not in property_hash:
-        matchobj = re.match(r'[^#]+#comment-(?P<key>\w+)', property_hash['key'])
+        matchobj = re.match(r'[^#]+#comment-(?P<key>\w+)', 
+                            property_hash['key'])
         if matchobj:
             logging.debug("Comment has parent: %s", matchobj.group('key'))
             comment_key = matchobj.group('key')
-            # TODO -- Think about GQL injection security issue since comes from public
+            # TODO -- Think about GQL injection security issue since 
+            # it can be submitted by public
             parent = model.Comment.get(db.Key(comment_key))
             thread_string = parent.next_child_thread_string()
         else:
