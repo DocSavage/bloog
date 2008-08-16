@@ -259,7 +259,13 @@ class Tag(MemcachedModel):
         super(Tag, self).delete()
 
     def get_counter(self):
-        return Counter.get_or_insert('Tag' + self.key().name())
+        # If we were worried about lots of concurrent gets, this
+        # should be get_or_insert().  OK for a admin-only blog.
+        counter = Counter.get_by_key_name('Tag' + self.key().name())
+        if counter is None:
+            counter = Counter(key_name='Tag'+self.key().name())
+            counter.put()
+        return counter
 
     def set_counter(self, value):
         # TODO -- Not implemented yet

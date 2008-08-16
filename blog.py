@@ -44,6 +44,7 @@ import os
 import cgi
 
 import logging
+import time
 
 from google.appengine.ext import webapp
 from google.appengine.api import users
@@ -162,7 +163,9 @@ def process_article_submission(handler, article_type):
         article.set_associated_data(
             {'relevant_links': handler.request.get('relevant_links'),       
              'amazon_items': handler.request.get('amazon_items')})
+        time1 = time.time()
         article.put()
+        logging.debug("Time to put article (%s): %f", article.title, time.time() - time1)
         for tag in article.tags:
             db.get(tag).counter.increment()
         restful.send_successful_response(handler, '/' + article.permalink)

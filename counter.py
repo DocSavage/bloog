@@ -61,7 +61,9 @@ http://sites.google.com/site/io/building-scalable-web-applications-with-google-a
         memcache.set(self.memcache_key(key_name=key_name), "0")
 
     def delete(self):
-        for shard in self.shards:
+        q = db.Query(CounterShard).filter('name =', self.key().name())  
+        shards = q.fetch(limit=Counter.MAX_SHARDS)
+        for shard in shards:
             shard.delete()
         super(Counter, self).delete()
 
@@ -76,7 +78,9 @@ http://sites.google.com/site/io/building-scalable-web-applications-with-google-a
             total = 0
             logging.debug("Getting count for %s", self.key().name())
             time1 = time.time()
-            for shard in self.shards:
+            q = db.Query(CounterShard).filter('name =', self.key().name())  
+            shards = q.fetch(limit=1000)
+            for shard in shards:
                 total += shard.count
                 time2 = time.time()
                 logging.debug("    Time to access shard %s (cumm count %d): %f", 
@@ -110,20 +114,20 @@ http://sites.google.com/site/io/building-scalable-web-applications-with-google-a
         return self.increment(downward=True)
 
 class CounterShard(db.Model):
+    name = db.StringProperty(required=True)
     count = db.IntegerProperty(default=0)
-    counter = db.Reference(Counter, required=True,
-                           collection_name="shards")
 
     @classmethod
     def increment(cls, counter_key, num_shards, downward=False):
         index = random.randint(1, num_shards)
-        shard_key_name = 'Shard' + counter_key.name() + str(index)
-        logging.debug("increment %s for key = %s", counter_key.name(), shard_key_name)
+        counter_name = counter_key.name()
+        shard_key_name = 'Shard' + counter_name + str(index)
+        logging.debug("increment %s for key = %s", counter_name, shard_key_name)
         def txn():
             shard = CounterShard.get_by_key_name(shard_key_name)
             if shard is None:
                 shard = CounterShard(key_name=shard_key_name, 
-                                     counter=counter_key)
+                                     name=counter_name)
                 logging.debug("Creating CounterShard: key_name=%s", 
                               shard_key_name)
             else:
