@@ -32,7 +32,7 @@ skip_files: |
  (.*\.py[co])|
  (.*/RCS/.*)|
  (\..*)|
- (utilities/.*)|
+ (dev/.*)|
  (tests/.*)|
  (docs/.*)|
  )$
