@@ -8,8 +8,10 @@
         <div class="comment_text">
             {{ comment.body }}
         </div>
+        {% if allow_comments %}
         <p class="post_meta">
             <a class="replybtn" title="Reply to Comment" href="#comment-{{ comment.key }}">Reply</a>
         </p>
+        {% endif %}
     </div>
 </li>

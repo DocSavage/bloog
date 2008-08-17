@@ -206,7 +206,7 @@ def process_comment_submission(handler, article):
                           get_captcha(article.key()))
             handler.error(401)      # Unauthorized
             return
-    if 'key' not in property_hash:
+    if 'key' not in property_hash and 'thread' not in property_hash:
         handler.error(401)
         return
 
@@ -229,6 +229,7 @@ def process_comment_submission(handler, article):
             handler.error(400)
             return
         property_hash['thread'] = thread_string
+        del property_hash['key']
 
     # Get and store some pieces of information from parent article.
     # TODO: See if this overhead can be avoided
