@@ -1,5 +1,9 @@
 {% if user_is_admin %}
 
+{% block head %}
+<link rel="stylesheet" type="text/css" href="/static/default/editor.css" />
+{% endblock %}
+
 <div id="postDialog" class="popupDialog">
     <div class="hd">Post Editor</div>
     <div class="bd">

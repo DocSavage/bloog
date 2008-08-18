@@ -1,0 +1,71 @@
+/* CSS for YUI Editor used in Bloog */
+.yui-skin-sam .yui-toolbar-container .yui-toolbar-pythonbtn span.yui-toolbar-icon {
+  background-image: url(/static/default/images/py.gif);
+  background-position: 1px 0px;
+  left: 5px;
+}
+.yui-skin-sam .yui-toolbar-container .yui-toolbar-pythonbtn-selected span.yui-toolbar-icon {
+  background-image: url(/static/default/images/py.gif);
+  background-position: 1px 0px;
+  left: 5px;
+}
+
+.yui-skin-sam .yui-toolbar-container .yui-toolbar-rubybtn span.yui-toolbar-icon {
+  background-image: url(/static/default/images/rb.gif);
+  background-position: 1px 0px;
+  left: 5px;
+}
+.yui-skin-sam .yui-toolbar-container .yui-toolbar-rubybtn-selected span.yui-toolbar-icon {
+  background-image: url(/static/default/images/rb.gif);
+  background-position: 1px 0px;
+  left: 5px;
+}
+
+.yui-skin-sam .yui-toolbar-container .yui-toolbar-jsbtn span.yui-toolbar-icon {
+  background-image: url(/static/default/images/js.gif);
+  background-position: 1px 0px;
+  left: 5px;
+}
+.yui-skin-sam .yui-toolbar-container .yui-toolbar-jsbtn-selected span.yui-toolbar-icon {
+  background-image: url(/static/default/images/js.gif);
+  background-position: 1px 0px;
+  left: 5px;
+}
+
+.yui-skin-sam .yui-toolbar-container .yui-toolbar-phpbtn span.yui-toolbar-icon {
+  background-image: url(/static/default/images/php.gif);
+  background-position: 0px 0px;
+  left: 3px;
+  width: 22px;
+}
+.yui-skin-sam .yui-toolbar-container .yui-toolbar-phpbtn-selected span.yui-toolbar-icon {
+  background-image: url(/static/default/images/php.gif);
+  background-position: 0px 0px;
+  left: 3px;
+  width: 22px;
+}
+
+.yui-skin-sam .yui-toolbar-container .yui-toolbar-htmlbtn span.yui-toolbar-icon {
+  background-image: url(/static/default/images/html.gif);
+  background-position: 0px 0px;
+  left: 2px;
+  width: 24px;
+}
+.yui-skin-sam .yui-toolbar-container .yui-toolbar-htmlbtn-selected span.yui-toolbar-icon {
+  background-image: url(/static/default/images/html.gif);
+  background-position: 1px 0px;
+  left: 5px;
+}
+
+.yui-skin-sam .yui-toolbar-container .yui-toolbar-cssbtn span.yui-toolbar-icon {
+  background-image: url(/static/default/images/css.gif);
+  background-position: 0px 0px;
+  left: 3px;
+  width: 22px;
+}
+.yui-skin-sam .yui-toolbar-container .yui-toolbar-cssbtn-selected span.yui-toolbar-icon {
+  background-image: url(/static/default/images/css.gif);
+  background-position: 0px 0px;
+  left: 3px;
+  width: 22px;
+}

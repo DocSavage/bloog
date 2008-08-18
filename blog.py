@@ -123,6 +123,14 @@ def sanitize_html(html):
         logging.error("Sanitized HTML has dangerous elements: %s", e.value)
         return None
 
+def process_embedded_code(article):
+    # TODO -- Check for embedded code, escape opening triangular brackets
+    # within code, and set article embedded_code strings so we can
+    # use proper javascript.
+    from utils import codehighlighter
+    article.html, languages = codehighlighter.process_html(article.html)
+    article.embedded_code = languages
+
 def process_article_edit(handler, permalink):
     # For http PUT, the parameters are passed in URIencoded string in body
     body = handler.request.body
@@ -147,6 +155,7 @@ def process_article_edit(handler, permalink):
             db.get(removed_tag).counter.decrement()
         for added_tag in after_tags - before_tags:
             db.get(added_tag).counter.increment()
+        process_embedded_code(article)
         article.put()
         restful.send_successful_response(handler, '/' + article.permalink)
         view.invalidate_cache()
@@ -172,6 +181,7 @@ def process_article_submission(handler, article_type):
         article.set_associated_data(
             {'relevant_links': handler.request.get('relevant_links'),
              'amazon_items': handler.request.get('amazon_items')})
+        process_embedded_code(article)
         article.put()
         for tag in article.tags:
             db.get(tag).counter.increment()

@@ -97,14 +97,153 @@ YAHOO.bloog.initAdmin = function() {
     YAHOO.bloog.postDialog.callback = { success: YAHOO.bloog.handleSuccess, 
                                         failure: YAHOO.bloog.handleFailure };
 
-    YAHOO.bloog.editor = new YAHOO.widget.Editor(
-        'postBody', {
-            height: '250px',
-            width: '500px',
-            dompath: true,
-            animate: true
-        });
+    YAHOO.bloog.editor = new YAHOO.widget.Editor('postBody', {
+        height: '250px',
+        width: '500px',
+        dompath: true,
+        animate: true,
+        toolbar: {
+            titlebar: '',
+            draggable: false,
+            buttonType: 'advanced',
+            buttons: [
+                /*** Prefer to have blog articles of one font and use consistent sizing
+                { group: 'fontstyle', label: 'Font Name and Size',
+                    buttons: [
+                        { type: 'select', label: 'Arial', value: 'fontname', disabled: true,
+                            menu: [
+                                { text: 'Arial', checked: true },
+                                { text: 'Arial Black' },
+                                { text: 'Comic Sans MS' },
+                                { text: 'Courier New' },
+                                { text: 'Lucida Console' },
+                                { text: 'Tahoma' },
+                                { text: 'Times New Roman' },
+                                { text: 'Trebuchet MS' },
+                                { text: 'Verdana' }
+                            ]
+                        },
+                        { type: 'spin', label: '13', value: 'fontsize', range: [ 9, 75 ], disabled: true }
+                    ]
+                },
+                { type: 'separator' },
+                ***/
+                { group: 'textstyle', label: 'Font Style',
+                    buttons: [
+                        { type: 'push', label: 'Bold CTRL + SHIFT + B', value: 'bold' },
+                        { type: 'push', label: 'Italic CTRL + SHIFT + I', value: 'italic' },
+                        { type: 'push', label: 'Underline CTRL + SHIFT + U', value: 'underline' },
+                        { type: 'separator' },
+                        { type: 'push', label: 'Subscript', value: 'subscript', disabled: true },
+                        { type: 'push', label: 'Superscript', value: 'superscript', disabled: true },
+                        { type: 'separator' },
+                        { type: 'color', label: 'Font Color', value: 'forecolor', disabled: true },
+                        { type: 'color', label: 'Background Color', value: 'backcolor', disabled: true },
+                        { type: 'separator' },
+                        { type: 'push', label: 'Remove Formatting', value: 'removeformat', disabled: true },
+                        { type: 'push', label: 'Show/Hide Hidden Elements', value: 'hiddenelements' }
+                    ]
+                },
+                { type: 'separator' },
+                { group: 'alignment', label: 'Alignment',
+                    buttons: [
+                        { type: 'push', label: 'Align Left CTRL + SHIFT + [', value: 'justifyleft' },
+                        { type: 'push', label: 'Align Center CTRL + SHIFT + |', value: 'justifycenter' },
+                        { type: 'push', label: 'Align Right CTRL + SHIFT + ]', value: 'justifyright' },
+                        { type: 'push', label: 'Justify', value: 'justifyfull' }
+                    ]
+                },
+                { type: 'separator' },
+                { group: 'parastyle', label: 'Paragraph Style',
+                    buttons: [
+                    { type: 'select', label: 'Normal', value: 'heading', disabled: true,
+                        menu: [
+                            { text: 'Normal', value: 'none', checked: true },
+                            { text: 'Header 1', value: 'h1' },
+                            { text: 'Header 2', value: 'h2' },
+                            { text: 'Header 3', value: 'h3' },
+                            { text: 'Header 4', value: 'h4' }
+                        ]
+                    }
+                    ]
+                },
+                { type: 'separator' },
+                { group: 'indentlist', label: 'Indenting and Lists',
+                    buttons: [
+                        { type: 'push', label: 'Indent', value: 'indent', disabled: true },
+                        { type: 'push', label: 'Outdent', value: 'outdent', disabled: true },
+                        { type: 'push', label: 'Create an Unordered List', value: 'insertunorderedlist' },
+                        { type: 'push', label: 'Create an Ordered List', value: 'insertorderedlist' }
+                    ]
+                },
+                { type: 'separator' },
+                { group: 'insertcode', label: 'Insert Code',
+                    buttons: [
+                    { type: 'push', label: 'Python', value: 'pythonbtn', disabled: false },
+                    { type: 'push', label: 'Javascript', value: 'jsbtn', disabled: false },
+                    { type: 'push', label: 'Ruby', value: 'rubybtn', disabled: false },
+                    { type: 'push', label: 'PHP', value: 'phpbtn', disabled: false },
+                    { type: 'push', label: 'XML/HTML', value: 'htmlbtn', disabled: false },
+                    { type: 'push', label: 'CSS', value: 'cssbtn', disabled: false },
+                    ]
+                },
+                { type: 'separator' },
+                { group: 'insertitem', label: 'Insert Item',
+                    buttons: [
+                        { type: 'push', label: 'HTML Link CTRL + SHIFT + L', value: 'createlink', disabled: true },
+                        { type: 'push', label: 'Insert Image', value: 'insertimage' }
+                    ]
+                }
+            ]
+        }
+    });
+
+    //Use the toolbarLoaded Custom Event; when that event fires,
+    //we will execute a function that adds the code buttons:
+    YAHOO.bloog.editor.on('toolbarLoaded', function() {
+
+        // Now listen for the new buttons click and do something with it.
+        // Note that the clicks are events synthesized for us automatically
+        // because those are the values we gave our buttons above:
+        this.toolbar.on('pythonbtnClick', function(o) {
+            this.execCommand('inserthtml', '<pre name="code" class="python"># Python code here</pre>');
+        }, YAHOO.bloog.editor, true);
+        this.toolbar.on('jsbtnClick', function(o) {
+            this.execCommand('inserthtml', '<pre name="code" class="js">// Javascript code here</pre>');
+        }, YAHOO.bloog.editor, true);
+        this.toolbar.on('rubybtnClick', function(o) {
+            this.execCommand('inserthtml', '<pre name="code" class="ruby"># Ruby code here</pre>');
+        }, YAHOO.bloog.editor, true);
+        this.toolbar.on('phpbtnClick', function(o) {
+            this.execCommand('inserthtml', '<pre name="code" class="php">// PHP code here</pre>');
+        }, YAHOO.bloog.editor, true);
+        this.toolbar.on('cssbtnClick', function(o) {
+            this.execCommand('inserthtml', '<pre name="code" class="css">/* CSS code here */</pre>');
+        }, YAHOO.bloog.editor, true);
+        this.toolbar.on('htmlbtnClick', function(o) {
+            this.execCommand('inserthtml', '<pre name="code" class="html">&lt;!-- XML/HTML code here --></textarea>');
+        }, YAHOO.bloog.editor, true);
+        /**
+        //Setup the button to be enabled, disabled or selected
+        this.on('afterNodeChange', function(o) {
+            //Get the selected element
+            var el = this._getSelectedElement();
+
+            //Get the button we want to manipulate
+            var button = this.toolbar.getButtonByValue('pythonbtn');
+
+            if (el && el.tagName == 'div') {
+                this.toolbar.enableButton(button);
+            }
+        }, this, true);
+        **/
+    }, YAHOO.bloog.editor, true);
+
     YAHOO.bloog.editor.render();
+    YAHOO.bloog.postDialog.showEvent.subscribe(YAHOO.bloog.editor.show,
+                                               YAHOO.bloog.editor, true);
+    YAHOO.bloog.postDialog.hideEvent.subscribe(YAHOO.bloog.editor.hide,
+                                               YAHOO.bloog.editor, true);
 
     var handleDelete = function() {
         var cObj = YAHOO.util.Connect.asyncRequest(

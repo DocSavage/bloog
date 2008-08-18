@@ -79,6 +79,9 @@ class Article(search.SearchableModel):
     tags = db.ListProperty(db.Key)
     two_columns = db.BooleanProperty()
     allow_comments = db.BooleanProperty()
+    # A list of languages for code embedded in article.
+    # This lets us choose the proper javascript for pretty viewing.
+    embedded_code = db.StringListProperty()
 
     def get_comments(self):
         """Return comments lexicographically sorted on thread string"""
@@ -111,6 +114,7 @@ class Article(search.SearchableModel):
     def is_big(self):
         guess_chars = len(self.html) + self.num_comments * 80
         if guess_chars > 2000 or \
+           self.embedded_code or \
            '<img' in self.html or \
            '<code>' in self.html or \
            '<pre>' in self.html:

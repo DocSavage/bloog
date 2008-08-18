@@ -19,8 +19,14 @@
 
 Note: This code is slightly altered from google.appengine.ext.search.
   The original code has timeout/quota problems when running in the
-  cloud.  Also brought Query out from SearchableModel and renamed it
-  FullTextQuery due to issues with scoping (?) and online shell app.
+  cloud.  
+  
+Changes by Bill Katz on original:
+  - Brought Query out from SearchableModel and renamed it FullTextQuery 
+    due to issues with scoping (?) and online shell app.
+  - Added unsearchable_properties class variable that lets you remove
+    string-based properties from indexing.
+  - Don't index over code inside pre with name 'code'.
 
 Defines a SearchableModel subclass of db.Model that supports full text
 indexing and search, based on the datastore's existing indexes.
@@ -191,6 +197,8 @@ class SearchableEntity(datastore.Entity):
 
     if text:
       datastore_types.ValidateString(text, 'text', max_len=sys.maxint)
+      # TODO -- Remove embedded code blogs marked by 'pre' tags
+      # and name="code"
       text = cls._PUNCTUATION_REGEX.sub(' ', text)
       words = text.lower().split()
 
