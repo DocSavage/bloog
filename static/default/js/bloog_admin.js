@@ -206,22 +206,22 @@ YAHOO.bloog.initAdmin = function() {
         // Note that the clicks are events synthesized for us automatically
         // because those are the values we gave our buttons above:
         this.toolbar.on('pythonbtnClick', function(o) {
-            this.execCommand('inserthtml', '<pre name="code" class="python"># Python code here</pre>');
+            this.execCommand('inserthtml', '<p></p><pre name="code" class="python"># Python code here</pre><p></p>');
         }, YAHOO.bloog.editor, true);
         this.toolbar.on('jsbtnClick', function(o) {
-            this.execCommand('inserthtml', '<pre name="code" class="js">// Javascript code here</pre>');
+            this.execCommand('inserthtml', '<p></p><pre name="code" class="js">// Javascript code here</pre><p></p>');
         }, YAHOO.bloog.editor, true);
         this.toolbar.on('rubybtnClick', function(o) {
-            this.execCommand('inserthtml', '<pre name="code" class="ruby"># Ruby code here</pre>');
+            this.execCommand('inserthtml', '<p></p><pre name="code" class="ruby"># Ruby code here</pre><p></p>');
         }, YAHOO.bloog.editor, true);
         this.toolbar.on('phpbtnClick', function(o) {
-            this.execCommand('inserthtml', '<pre name="code" class="php">// PHP code here</pre>');
+            this.execCommand('inserthtml', '<p></p><pre name="code" class="php">// PHP code here</pre><p></p>');
         }, YAHOO.bloog.editor, true);
         this.toolbar.on('cssbtnClick', function(o) {
-            this.execCommand('inserthtml', '<pre name="code" class="css">/* CSS code here */</pre>');
+            this.execCommand('inserthtml', '<p></p><pre name="code" class="css">/* CSS code here */</pre><p></p>');
         }, YAHOO.bloog.editor, true);
         this.toolbar.on('htmlbtnClick', function(o) {
-            this.execCommand('inserthtml', '<pre name="code" class="html">&lt;!-- XML/HTML code here --></textarea>');
+            this.execCommand('inserthtml', '<p></p><pre name="code" class="html">&lt;!-- XML/HTML code here --></pre><p></p>');
         }, YAHOO.bloog.editor, true);
         /**
         //Setup the button to be enabled, disabled or selected
