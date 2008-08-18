@@ -105,7 +105,7 @@ YAHOO.bloog.initComments = function() {
             dompath: false,
             animate: true,
             toolbar: {
-                titlebar: 'Comment',
+                titlebar: '',
                 buttons: [
                     { group: 'fontstyle', label: 'Font Style',
                         buttons: [
