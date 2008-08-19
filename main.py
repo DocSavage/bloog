@@ -25,14 +25,23 @@
 
 __author__ = 'William T. Katz'
 
+from google.appengine.ext import webapp
+
+import logging
+import os
+import sys
 import wsgiref.handlers
 
-from google.appengine.ext import webapp
+# Force sys.path to have our own directory first, so we can import from it.
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+
+# Log a message each time this module get loaded.
+logging.info('Loading %s, app version = %s',
+             __name__, os.getenv('CURRENT_VERSION_ID'))
 
 import blog
 import contact
 import cache_stats
-import logging
 import config
 import timings
 
@@ -53,7 +62,6 @@ ROUTES = [
 
 def main():
     path = timings.start_run()
-    logging.debug("Received request with path %s", path)
     application = webapp.WSGIApplication(ROUTES, debug=True)
     wsgiref.handlers.CGIHandler().run(application)
     timings.stop_run(path)

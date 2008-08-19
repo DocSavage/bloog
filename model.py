@@ -91,10 +91,12 @@ class Article(search.SearchableModel):
         return [comment for comment in q]
     comments = property(get_comments)       # No set for now
 
-    # Serialize data that we'd like to store with this article.
-    # Examples include relevant (per article) links and associated 
-    #  Amazon items.
     def set_associated_data(self, data):
+        """
+        Serialize data that we'd like to store with this article.
+        Examples include relevant (per article) links and associated 
+        Amazon items.
+        """
         import pickle
         self.assoc_dict = pickle.dumps(data)
 
@@ -127,6 +129,22 @@ class Article(search.SearchableModel):
         return get_thread_string(self, '')
 
 class Comment(db.Model):
+    """Stores comments and their position in comment threads.
+
+    Thread string describes the tree using 3 digit numbers.
+    This allows lexicographical sorting to order comments
+    and easy indentation computation based on the string depth.
+    Example for comments that are nested except first response:
+    001
+      001.001
+      001.002
+        001.002.001
+          001.002.001.001
+    NOTE: This means we assume less than 999 comments in
+      response to a parent comment, and we won't have
+      nesting that causes our thread string > 500 bytes.
+      TODO -- Put in error checks
+    """
     name = db.StringProperty()
     email = db.EmailProperty()
     homepage = db.StringProperty()
@@ -134,21 +152,7 @@ class Comment(db.Model):
     body = db.TextProperty(required=True)
     published = db.DateTimeProperty(auto_now_add=True)
     article = db.ReferenceProperty(Article)
-
     thread = db.StringProperty(required=True)
-    # Thread string describes the tree using 3 digit numbers.
-    # This allows lexicographical sorting to order comments
-    # and easy indentation computation based on the string depth.
-    # Example for comments that are nested except first response:
-    # 001
-    #   001.001
-    #   001.002
-    #     001.002.001
-    #       001.002.001.001
-    # NOTE: This means we assume less than 999 comments in
-    #   response to a parent comment, and we won't have
-    #   nesting that causes our thread string > 500 bytes.
-    #   TODO -- Put in error checks
 
     def get_indentation(self):
         # Indentation is based on degree of nesting in "thread"

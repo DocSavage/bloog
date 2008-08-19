@@ -100,8 +100,8 @@ def methods_via_query_allowed(handler_method):
         real_verb = self.request.get('_method', None)
         if not real_verb and 'X-HTTP-Method-Override' in self.request.environ:
             real_verb = self.request.environ['X-HTTP-Method-Override']
-        logging.debug("redirect_if_needed: real_verb = %s", real_verb)
         if real_verb:
+            logging.debug("Redirected from POST. Detected method override = %s", real_verb)
             method = real_verb.upper()
             if method == 'HEAD':
                 self.head(*args, **kwargs)
