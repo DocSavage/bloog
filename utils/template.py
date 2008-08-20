@@ -19,7 +19,7 @@
 
 Note: This code is slightly altered from google.appengine.ext.webapp.
 Changes by Bill Katz on original:
-  - Allow setting of template directory hierarchy.
+  - Allow setting of template directory hierarchy in render() and load()
 
 The main purpose of this module is to hide all of the package import pain
 you normally have to go through to get Django to work. We expose the Django

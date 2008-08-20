@@ -20,13 +20,14 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
 # DEALINGS IN THE SOFTWARE.
 
-import config
-from counter import Counter
-
 import logging
 
 from google.appengine.api import memcache
 from google.appengine.ext import db
+
+import config
+from models import search
+from models.counter import Counter
 
 # Handle generation of thread strings
 def get_thread_string(article, cur_thread_string):

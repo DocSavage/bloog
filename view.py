@@ -37,8 +37,6 @@ from model import Tag       # Might rethink if this is leaking into view
 import template
 import config
 
-bloog_version = "0.8"       # Constant should be in upgradable code files.
-
 NUM_FULL_RENDERS = {}       # Cached data for some timings.
 
 def invalidate_cache():
@@ -138,7 +136,7 @@ class ViewPage(object):
         # Define some parameters it'd be nice to have in views by default.
         template_params = {
             "current_url": url,
-            "bloog_version": bloog_version,
+            "bloog_version": config.BLOG.bloog_version,
             "user": users.get_current_user(),
             "user_is_admin": users.is_current_user_admin(),
             "login_url": users.create_login_url(handler.request.uri),

@@ -10,6 +10,7 @@ logging.info("Starting application in DEBUG mode: %s", DEBUG)
 # Do change blog or page dictionaries at the bottom of this config module.
 
 DEFAULT_BLOG = {
+    "bloog_version": "0.8",
     "html_type": "text/html",
     "charset": "iso-8859-1",
     "title": "Bloog",
