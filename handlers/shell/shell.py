@@ -49,6 +49,7 @@ from google.appengine.api import users
 from google.appengine.ext import db
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp import template
+import config
 
 
 # Set to True if stack traces should be shown in the browser, etc.
@@ -72,8 +73,7 @@ INITIAL_UNPICKLABLES = [
   'import sys',
   'from google.appengine.ext import db',
   'from google.appengine.api import users',
-  'import model',
-  'import counter'
+  'import models'
   ]
 
 
@@ -183,8 +183,7 @@ class FrontPageHandler(webapp.RequestHandler):
       session.unpicklables = [db.Text(line) for line in INITIAL_UNPICKLABLES]
       session_key = session.put()
 
-    template_file = os.path.join(os.path.dirname(__file__), 'views', 'shell',
-                                 'shell.html')
+    template_file = os.path.join(config.APP_ROOT_DIR, 'views', 'shell', 'shell.html')
     session_url = '/?session=%s' % session_key
     vars = { 'server_software': os.environ['SERVER_SOFTWARE'],
              'python_version': sys.version,

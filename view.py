@@ -21,7 +21,6 @@
 # DEALINGS IN THE SOFTWARE.
 
 
-import copy
 import logging
 import os
 import re
@@ -32,19 +31,14 @@ import urlparse
 from google.appengine.api import users
 from google.appengine.api import memcache
 
-from model import Tag       # Might rethink if this is leaking into view
-
-import template
+from models.blog import Tag       # Might rethink if this is leaking into view
+from utils import template
 import config
 
 NUM_FULL_RENDERS = {}       # Cached data for some timings.
 
 def invalidate_cache():
     memcache.flush_all()
-
-HANDLER_PATTERN = re.compile(r"<class '(?P<module_name>[^\.]*)"
-                             r"\."
-                             r"(?P<handler_name>\w+)Handler'>")
 
 def to_filename(camelcase_handler_str):
     filename = camelcase_handler_str[0].lower()
@@ -54,6 +48,10 @@ def to_filename(camelcase_handler_str):
         else:
             filename += ch
     return filename
+
+HANDLER_PATTERN = re.compile(r"<class 'handlers\."
+                             r"(?P<handler_path>.*)"
+                             r"(?=Handler'>)")
 
 def get_view_file(handler, params={}):
     """
@@ -67,6 +65,10 @@ def get_view_file(handler, params={}):
     Only <handler> and <ext> are required.
     Properties 'module_name' and 'handler_name' can be passed in 
      params to override the current module/handler name.
+     
+    Returns:
+      Tuple with first element = template file name and
+      second element = template directory path tuple
     """
     if 'ext' in params:
         desired_ext = params['ext']
@@ -75,25 +77,46 @@ def get_view_file(handler, params={}):
 
     verb = handler.request.method.lower()
     class_name = str(handler.__class__)
+    logging.debug("view class name: %s", class_name)
     nmatch = re.match(HANDLER_PATTERN, class_name)
     if nmatch:
-        module_name = to_filename(nmatch.group('module_name'))
-        handler_name = to_filename(nmatch.group('handler_name'))
+        handler_path = nmatch.group('handler_path').split('.')
+        logging.debug("view handler modules: %s", handler_path)
+        if len(handler_path) == 3:
+            app_name = to_filename(handler_path[0])
+        else:
+            app_name = ''
+        module_name = to_filename(handler_path[-2])
+        handler_name = to_filename(handler_path[-1])
     else:
+        app_name = ''
         module_name = None
         handler_name = None
 
+    if 'app_name' in params:
+        app_name = params['app_name']
     if 'module_name' in params:
         module_name = params['module_name']
     if 'handler_name' in params:
         handler_name = params['handler_name']
 
-    view_folder = os.path.join(
-        os.path.dirname(__file__), 
-        'views',
-        config.BLOG['theme'])
+    # Get template directory hierarchy -- Needed if we inherit from templates
+    # in directories above us (due to sharing with other templates).
+    
+    root_folder = os.path.join(
+        config.APP_ROOT_DIR, 
+        'views', config.BLOG['theme'])
+    template_dirs = ()
+    if module_name:
+        template_dirs += (os.path.join(root_folder, app_name, module_name),)
+    if app_name:
+        template_dirs += (os.path.join(root_folder, app_name),)
+    template_dirs += (root_folder,)
+    logging.debug("Template_dirs: %s", template_dirs)
+        
+    # Now check possible extensions for the given template file.
     if module_name and handler_name:
-        filename_prefix = os.path.join(view_folder, module_name, handler_name)
+        filename_prefix = os.path.join(root_folder, app_name, module_name, handler_name)
         logging.debug("Looking for template with prefix %s", filename_prefix)
         possible_roles = []
         if users.is_current_user_admin():
@@ -105,12 +128,12 @@ def get_view_file(handler, params={}):
         for role in possible_roles:
             filename = filename_prefix + role + verb + '.' + desired_ext
             if os.path.exists(filename):
-                return filename
+                return {'file': filename, 'dirs': template_dirs}
         for role in possible_roles:
             filename = filename_prefix + role + desired_ext
             if os.path.exists(filename):
-                return filename
-    return view_folder + 'blog/notfound.html'
+                return {'file': filename, 'dirs': template_dirs}
+    return {'file': root_folder + '/notfound.html', 'dirs': template_dirs}
 
 class ViewPage(object):
     def __init__(self, cache_time=None):
@@ -120,9 +143,9 @@ class ViewPage(object):
         else:
             self.cache_time = cache_time
 
-    def full_render(self, handler, template_file, more_params):
+    def full_render(self, handler, template_info, more_params):
         """Render a dynamic page from scatch."""
-        logging.debug("Doing full render using template_file: %s", template_file)
+        logging.debug("Doing full render using template_file: %s", template_info['file'])
         url = handler.request.uri
         scheme, netloc, path, query, fragment = urlparse.urlsplit(url)
 
@@ -136,7 +159,7 @@ class ViewPage(object):
         # Define some parameters it'd be nice to have in views by default.
         template_params = {
             "current_url": url,
-            "bloog_version": config.BLOG.bloog_version,
+            "bloog_version": config.BLOG['bloog_version'],
             "user": users.get_current_user(),
             "user_is_admin": users.is_current_user_admin(),
             "login_url": users.create_login_url(handler.request.uri),
@@ -146,11 +169,11 @@ class ViewPage(object):
         }
         template_params.update(config.PAGE or config.DEFAULT_PAGE)
         template_params.update(more_params)
-        return template.render(template_file, template_params,
+        return template.render(template_info['file'], template_params,
                                debug=config.DEBUG, 
-                               template_dirs=config.BLOG["template_dirs"])
+                               template_dirs=template_info['dirs'])
 
-    def render_or_get_cache(self, handler, template_file, template_params={}):
+    def render_or_get_cache(self, handler, template_info, template_params={}):
         """Checks if there's a non-stale cached version of this view, 
            and if so, return it."""
         if self.cache_time:
@@ -166,15 +189,15 @@ class ViewPage(object):
             key = handler.request.url + stateful_flags
             data = memcache.get(key)
             if data is not None:
-                logging.debug("Using cache for %s", template_file)
+                logging.debug("Using cache for %s", template_info['file'])
                 return data
             else:
                 logging.debug("Memcached miss using key: %s", key)
 
-        output = self.full_render(handler, template_file, template_params)
+        output = self.full_render(handler, template_info, template_params)
         if self.cache_time:
             logging.debug("Adding %s to memcached (key %s) for %d sec",
-                          template_file, key, self.cache_time)
+                          template_info['file'], key, self.cache_time)
             memcache.add(key, output, self.cache_time)
         else:
             logging.debug("Ignoring caching since cache_time set to %d",
@@ -187,9 +210,9 @@ class ViewPage(object):
         include:
             'ext': 'xml' (or any other format type)
         """
-        template_file = get_view_file(handler, params)
-        logging.debug("Using template at %s", template_file)
-        output = self.render_or_get_cache(handler, template_file, params)
+        template_info = get_view_file(handler, params)
+        logging.debug("Using template at %s", template_info['file'])
+        output = self.render_or_get_cache(handler, template_info, params)
         handler.response.out.write(output)
 
     def render_query(self, handler, model_name, query, params={}):

@@ -15,7 +15,7 @@ handlers:
   upload: static/favicon.ico
 
 - url: /admin/shell.*
-  script: shell.py
+  script: handlers/shell/shell.py
   login: admin
 
 - url: .*

@@ -27,13 +27,13 @@ handlers for receiving the message through a HTTP POST.
 """
 __author__ = 'William T. Katz'
 
-import restful
+import logging
+import string
+import time
+
+from handlers import restful
 import view
 import config
-import time
-import string
-
-import logging
 
 RANDOM_TOKEN = '08yzek30krn4l' + config.BLOG['root_url']
 

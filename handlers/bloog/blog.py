@@ -50,9 +50,9 @@ from google.appengine.api import users
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 
-import restful
-import authorized
-import model
+from handlers import restful
+from utils import authorized
+import models
 import view
 import config
 
@@ -72,7 +72,7 @@ def legacy_id_mapping(path, legacy_program):
     if legacy_program and legacy_program == 'Drupal':
         url_match = re.match('node/(\d+)', path)
         if url_match:
-            return db.Query(model.Article). \
+            return db.Query(models.blog.Article). \
                 filter('legacy_id =', url_match.group(1)). \
                 get()
     return None
@@ -89,7 +89,7 @@ def get_format(format_string):
     return format_string
 
 def get_tag_key(tag_string):
-    obj = model.Tag.get_or_insert(tag_string)
+    obj = models.blog.Tag.get_or_insert(tag_string)
     return obj.key()
 
 def get_tags(tags_string):
@@ -146,7 +146,7 @@ def process_article_edit(handler, permalink):
          ('html', get_html, 'body', 'format')])
 
     if property_hash:
-        article = db.Query(model.Article).filter('permalink =', permalink).get()
+        article = db.Query(models.blog.Article).filter('permalink =', permalink).get()
         before_tags = set(article.tags)
         for key,value in property_hash.iteritems():
             setattr(article, key, value)
@@ -177,7 +177,7 @@ def process_article_submission(handler, article_type):
     if property_hash:
         property_hash['format'] = 'html'   # For now, convert all to HTML
         property_hash['article_type'] = article_type
-        article = model.Article(**property_hash)
+        article = models.blog.Article(**property_hash)
         article.set_associated_data(
             {'relevant_links': handler.request.get('relevant_links'),
              'amazon_items': handler.request.get('amazon_items')})
@@ -229,7 +229,7 @@ def process_comment_submission(handler, article):
             comment_key = matchobj.group('key')
             # TODO -- Think about GQL injection security issue since 
             # it can be submitted by public
-            parent = model.Comment.get(db.Key(comment_key))
+            parent = models.blog.Comment.get(db.Key(comment_key))
             thread_string = parent.next_child_thread_string()
         else:
             logging.debug("Comment is off main article")
@@ -249,7 +249,7 @@ def process_comment_submission(handler, article):
         article.num_comments += 1
     property_hash['article'] = article.put()
 
-    comment = model.Comment(**property_hash)
+    comment = models.blog.Comment(**property_hash)
     comment.put()
     # Render just this comment and send it to client
     response = template.render(
@@ -304,7 +304,7 @@ class RootHandler(restful.Controller):
         page = view.ViewPage()
         page.render_query(
             self, 'articles', 
-            db.Query(model.Article). \
+            db.Query(models.blog.Article). \
                filter('article_type =', 'blog entry').order('-published'))
 
     @authorized.role("admin")
@@ -329,13 +329,13 @@ class ArticleHandler(restful.Controller):
 
         # Check undated pages
         if not article:
-            article = db.Query(model.Article). \
+            article = db.Query(models.blog.Article). \
                          filter('permalink =', path).get()
         render_article(self, article)
 
     @restful.methods_via_query_allowed    
     def post(self, path):
-        article = db.Query(model.Article).filter('permalink =', path).get()
+        article = db.Query(models.blog.Article).filter('permalink =', path).get()
         process_comment_submission(self, article)
 
     @authorized.role("admin")
@@ -374,13 +374,13 @@ class ArticleHandler(restful.Controller):
                 self.response.set_status(204, 'No more ' + model_class + ' entities')
                 
         if model_class == 'article':
-            query = model.Article.all()
+            query = models.blog.Article.all()
             delete_entity(query)
         elif model_class == 'comment':
-            query = model.Comment.all()
+            query = models.blog.Comment.all()
             delete_entity(query)
         elif model_class == 'tag':
-            query = model.Tag.all()
+            query = models.blog.Tag.all()
             delete_entity(query)
         else:
             self.error(404)
@@ -391,7 +391,7 @@ class BlogEntryHandler(restful.Controller):
         logging.debug("BlogEntryHandler#get for year %s, "
                       "month %s, and perm_link %s", 
                       year, month, perm_stem)
-        article = db.Query(model.Article). \
+        article = db.Query(models.blog.Article). \
                      filter('permalink =', 
                             year + '/' + month + '/' + perm_stem).get()
         render_article(self, article)
@@ -400,7 +400,7 @@ class BlogEntryHandler(restful.Controller):
     def post(self, year, month, perm_stem):
         logging.debug("Adding comment for blog entry %s", self.request.path)
         permalink = year + '/' + month + '/' + perm_stem
-        article = db.Query(model.Article). \
+        article = db.Query(models.blog.Article). \
                      filter('permalink =', permalink).get()
         if article:
             process_comment_submission(self, article)
@@ -418,7 +418,7 @@ class BlogEntryHandler(restful.Controller):
     def delete(self, year, month, perm_stem):
         permalink = year + '/' + month + '/' + perm_stem
         logging.debug("Deleting blog entry %s", permalink)
-        article = db.Query(model.Article). \
+        article = db.Query(models.blog.Article). \
                      filter('permalink =', permalink).get()
         for tag in article.tags:
             db.get(tag).counter.decrement()
@@ -435,7 +435,7 @@ class TagHandler(restful.Controller):
         page = view.ViewPage()
         page.render_query(
             self, 'articles', 
-            db.Query(model.Article).filter('tags =',        
+            db.Query(models.blog.Article).filter('tags =',        
                                            tag_key).order('-published'), 
             {'tag': tag})
 
@@ -445,7 +445,7 @@ class SearchHandler(restful.Controller):
         page = view.ViewPage()
         page.render_query(
             self, 'articles', 
-            model.Article.all().search(search_term).order('-published'), 
+            models.blog.Article.all().search(search_term).order('-published'), 
             {'search_term': search_term})
 
 class YearHandler(restful.Controller):
@@ -456,7 +456,7 @@ class YearHandler(restful.Controller):
         page = view.ViewPage()
         page.render_query(
             self, 'articles', 
-            db.Query(model.Article).order('-published'). \
+            db.Query(models.blog.Article).order('-published'). \
                filter('published >=', start_date). \
                filter('published <=', end_date), 
             {'title': 'Articles for ' + year, 'year': year})
@@ -471,7 +471,7 @@ class MonthHandler(restful.Controller):
         page = view.ViewPage()
         page.render_query(
             self, 'articles', 
-            db.Query(model.Article).order('-published'). \
+            db.Query(models.blog.Article).order('-published'). \
                filter('published >=', start_date). \
                filter('published <=', end_date), 
             {'title': 'Articles for ' + month + '/' + year, 
@@ -487,7 +487,7 @@ class MonthHandler(restful.Controller):
 class AtomHandler(webapp.RequestHandler):
     def get(self):
         logging.debug("Sending Atom feed")
-        articles = db.Query(model.Article). \
+        articles = db.Query(models.blog.Article). \
                       filter('article_type =', 'blog entry'). \
                       order('-published').fetch(limit=10)
         updated = ''

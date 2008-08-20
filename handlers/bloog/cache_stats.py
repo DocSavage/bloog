@@ -28,14 +28,15 @@ Copyright (c) 2008 Publishare LLC.  Distributed under MIT License.
 """
 __author__ = "William T. Katz"
 
-import restful
-import authorized
-import view
 import time
 import urlparse
 import os
 
 from google.appengine.api import memcache
+
+from handlers import restful
+from utils import authorized
+import view
 
 class CacheStatsHandler(restful.Controller):
     @authorized.role("admin")

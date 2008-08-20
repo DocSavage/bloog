@@ -21,8 +21,6 @@
 # DEALINGS IN THE SOFTWARE.
 
 
-"""A simple blog for Google App Engine"""
-
 __author__ = 'William T. Katz'
 
 from google.appengine.ext import webapp
@@ -32,18 +30,15 @@ import os
 import sys
 import wsgiref.handlers
 
+from handlers.bloog import blog, contact, cache_stats, timings
+import config
+
 # Force sys.path to have our own directory first, so we can import from it.
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+sys.path.insert(0, config.APP_ROOT_DIR)
 
 # Log a message each time this module get loaded.
 logging.info('Loading %s, app version = %s',
              __name__, os.getenv('CURRENT_VERSION_ID'))
-
-import blog
-import contact
-import cache_stats
-import config
-import timings
 
 ROUTES = [
     ('/*$', blog.RootHandler),

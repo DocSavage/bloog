@@ -35,12 +35,13 @@ __author__ = "William T. Katz"
 #  doesn't interfere with memcached stats.
 TIMINGS = {}
 
-import restful
-import authorized
-import view
 import time
 import urlparse
 import os
+
+from handlers import restful
+from utils import authorized
+import view
 
 def start_run():
     url = os.environ['PATH_INFO']

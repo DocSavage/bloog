@@ -1,6 +1,8 @@
 import os
 import logging
 
+APP_ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
+
 # If we're debugging, turn the cache off, etc.
 # Set to true if we want to have our webapp print stack traces, etc
 DEBUG = os.environ['SERVER_SOFTWARE'].startswith('Dev')
@@ -32,7 +34,6 @@ DEFAULT_BLOG = {
     # If another string is used besides 'default', calls to static files and
     #  use of template files in /views will go to directory by that name.
     "theme": "default",
-    "template_dirs": (os.path.abspath("views/default"),),
 
     # If you want to use legacy ID mapping for your former blog platform,
     # define it here and insert the necessary mapping code in the
