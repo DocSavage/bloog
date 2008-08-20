@@ -1,4 +1,4 @@
-{% extends "../_shared/base.html" %}
+{% extends "base.html" %}
 
 {% block first_column %}
     <div id="mainCol" class="fix"><a name="main"></a>
@@ -7,7 +7,7 @@
             <h2>Articles from the year {{ year }}</h2>
         </div>
         {% for article in articles %}
-            {% include '../_shared/article_excerpt.html' %}
+            {% include '../article_excerpt.html' %}
         {% endfor %}
     {% else %}
         <div class="post">

@@ -105,7 +105,7 @@ class Article(search.SearchableModel):
         return pickle.loads(self.assoc_dict)
 
     def full_permalink(self):
-        return config.blog['root_url'] + '/' + self.permalink
+        return config.BLOG['root_url'] + '/' + self.permalink
     
     def rfc3339_published(self):
         return self.published.strftime('%Y-%m-%dT%H:%M:%SZ')

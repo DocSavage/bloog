@@ -73,10 +73,10 @@
                 {% block first_column %}
                 <div id="mainCol" class="fix"><a name="main"></a>
                 {% for article in articles %}
-                    {% include '../_shared/article_excerpt.html' %}
+                    {% include 'article_excerpt.html' %}
                 {% endfor %}
                 {% if not articles %}
-                    {% include '../_shared/bloog_intro.html' %}
+                    {% include 'bloog_intro.html' %}
                 {% endif %}
                     <div id="more_reading">
                         <p>Stay tuned...</p>
@@ -277,7 +277,7 @@
         <script type="text/javascript" src="/static/default/js/bloog_base.js"></script>
 
         {% if user_is_admin %}
-        {% include "../_shared/form_editor.html" %}
+        {% include "form_editor.html" %}
         {% endif %}
 
         {% block end_body %}

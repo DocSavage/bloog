@@ -35,7 +35,7 @@ import string
 
 import logging
 
-RANDOM_TOKEN = '08yzek30krn4l' + config.blog['root_url']
+RANDOM_TOKEN = '08yzek30krn4l' + config.BLOG['root_url']
 
 class ContactHandler(restful.Controller):
     def get(self):
@@ -55,9 +55,9 @@ class ContactHandler(restful.Controller):
         reply_to = self.request.get('author') + ' <' + \
                    self.request.get('email') + '>'
         mail.send_mail(
-            sender = config.blog['email'],
+            sender = config.BLOG['email'],
             reply_to = reply_to,
-            to = config.blog['email'],
+            to = config.BLOG['email'],
             subject = self.request.get('subject'),
             body = self.request.get('message')
         )

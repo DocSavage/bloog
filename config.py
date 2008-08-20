@@ -9,7 +9,7 @@ logging.info("Starting application in DEBUG mode: %s", DEBUG)
 # Don't change default_blog or default_page to prevent conflicts when merging #  Bloog source code updates.
 # Do change blog or page dictionaries at the bottom of this config module.
 
-default_blog = {
+DEFAULT_BLOG = {
     "html_type": "text/html",
     "charset": "iso-8859-1",
     "title": "Bloog",
@@ -31,6 +31,7 @@ default_blog = {
     # If another string is used besides 'default', calls to static files and
     #  use of template files in /views will go to directory by that name.
     "theme": "default",
+    "template_dirs": (os.path.abspath("views/default"),),
 
     # If you want to use legacy ID mapping for your former blog platform,
     # define it here and insert the necessary mapping code in the
@@ -40,8 +41,8 @@ default_blog = {
     #"legacy_blog_software": "Drupal"
 }
 
-default_page = {
-    "title": default_blog["title"],
+DEFAULT_PAGE = {
+    "title": DEFAULT_BLOG["title"],
     "navlinks": [
         { "title": "Link", "description": "Short description", "url": "#"},
         { "title": "Link", "description": "Short description", "url": "#"},
@@ -94,5 +95,5 @@ default_page = {
 # Customize the following two dictionaries to tailor this Bloog to your taste.
 # The view will preferentially use 'blog' and 'page' dictionaries.
 
-blog = default_blog
-page = default_page
+BLOG = DEFAULT_BLOG
+PAGE = DEFAULT_PAGE

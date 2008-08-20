@@ -20,22 +20,22 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
 # DEALINGS IN THE SOFTWARE.
 
+
+import copy
+import logging
 import os
 import re
-
-import logging
+import string
+import time
+import urlparse
 
 from google.appengine.api import users
-from google.appengine.ext.webapp import template
 from google.appengine.api import memcache
 
 from model import Tag       # Might rethink if this is leaking into view
 
+import template
 import config
-import copy
-import time
-import urlparse
-import string
 
 bloog_version = "0.8"       # Constant should be in upgradable code files.
 
@@ -93,7 +93,7 @@ def get_view_file(handler, params={}):
     view_folder = os.path.join(
         os.path.dirname(__file__), 
         'views',
-        config.blog['theme'])
+        config.BLOG['theme'])
     if module_name and handler_name:
         filename_prefix = os.path.join(view_folder, module_name, handler_name)
         logging.debug("Looking for template with prefix %s", filename_prefix)
@@ -118,7 +118,7 @@ class ViewPage(object):
     def __init__(self, cache_time=None):
         """Each ViewPage has a variable cache timeout"""
         if cache_time == None:
-            self.cache_time = config.blog['cache_time']
+            self.cache_time = config.BLOG['cache_time']
         else:
             self.cache_time = cache_time
 
@@ -143,13 +143,14 @@ class ViewPage(object):
             "user_is_admin": users.is_current_user_admin(),
             "login_url": users.create_login_url(handler.request.uri),
             "logout_url": users.create_logout_url(handler.request.uri),
-            "blog": config.blog or config.default_blog,
+            "blog": config.BLOG or config.DEFAULT_BLOG,
             "blog_tags": tags
         }
-        template_params.update(config.page or config.default_page)
+        template_params.update(config.PAGE or config.DEFAULT_PAGE)
         template_params.update(more_params)
         return template.render(template_file, template_params,
-                               debug=config.DEBUG)
+                               debug=config.DEBUG, 
+                               template_dirs=config.BLOG["template_dirs"])
 
     def render_or_get_cache(self, handler, template_file, template_params={}):
         """Checks if there's a non-stale cached version of this view, 

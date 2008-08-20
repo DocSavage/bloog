@@ -77,7 +77,7 @@ INITIAL_UNPICKLABLES = [
   ]
 
 
-class Session(db.Model):
+class ShellSession(db.Model):
   """A shell session. Stores the session's globals.
 
   Each session globals is stored in one of two places:
@@ -176,10 +176,10 @@ class FrontPageHandler(webapp.RequestHandler):
     # set up the session. TODO: garbage collect old shell sessions
     session_key = self.request.get('session')
     if session_key:
-      session = Session.get(session_key)
+      session = ShellSession.get(session_key)
     else:
       # create a new session
-      session = Session()
+      session = ShellSession()
       session.unpicklables = [db.Text(line) for line in INITIAL_UNPICKLABLES]
       session_key = session.put()
 
@@ -233,7 +233,7 @@ class StatementHandler(webapp.RequestHandler):
     statement_module.__builtins__ = __builtin__
 
     # load the session from the datastore
-    session = Session.get(self.request.get('session'))
+    session = ShellSession.get(self.request.get('session'))
 
     # swap in our custom module for __main__. then unpickle the session
     # globals, run the statement, and re-pickle the session globals, all

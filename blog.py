@@ -110,7 +110,7 @@ def get_html(body, markup_type):
     return body
 
 def get_captcha(key):
-    return ("%X" % abs(hash(str(key) + config.blog['title'])))[:6]
+    return ("%X" % abs(hash(str(key) + config.BLOG['title'])))[:6]
 
 def sanitize_html(html):
     from utils import sanitizer
@@ -253,7 +253,7 @@ def process_comment_submission(handler, article):
     comment.put()
     # Render just this comment and send it to client
     response = template.render(
-        "views/%s/blog/comment.html" % config.blog['theme'], 
+        "views/%s/blog/comment.html" % config.BLOG['theme'], 
         { 'comment': comment }, 
         debug=config.DEBUG)
     handler.response.out.write(response)
@@ -272,7 +272,7 @@ def render_article(handler, article):
         allow_comments = article.allow_comments
         if allow_comments is None:
             age = (datetime.datetime.now() - article.published).days
-            allow_comments = (age <= config.blog['days_can_comment'])
+            allow_comments = (age <= config.BLOG['days_can_comment'])
         page = view.ViewPage()
         page.render(handler, { "two_columns": two_columns,
                                "allow_comments": allow_comments,
@@ -325,7 +325,7 @@ class ArticleHandler(restful.Controller):
 
         # This lets you map arbitrary URL patterns like /node/3
         #  to article properties, e.g. 3 -> legacy_id property
-        article = legacy_id_mapping(path, config.blog["legacy_blog_software"])
+        article = legacy_id_mapping(path, config.BLOG["legacy_blog_software"])
 
         # Check undated pages
         if not article:

@@ -1,4 +1,4 @@
-{% extends "../_shared/base.html" %}
+{% extends "base.html" %}
 
 {% if article.embedded_code %}
 {% block head %}
@@ -67,7 +67,7 @@
 {% block end_body %}
 
 {% if allow_comments %}
-{% include "../_shared/form_comment.html" %}
+{% include "../form_comment.html" %}
 {% endif %}
 
 {% if article.embedded_code %}

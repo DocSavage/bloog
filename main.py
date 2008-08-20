@@ -57,7 +57,7 @@ ROUTES = [
     ('/search', blog.SearchHandler),
     ('/contact/*$', contact.ContactHandler),
     ('/tag/(.*)', blog.TagHandler),
-    (config.blog['master_atom_url'] + '/*$', blog.AtomHandler),
+    (config.BLOG['master_atom_url'] + '/*$', blog.AtomHandler),
     ('/(.*)', blog.ArticleHandler)]
 
 def main():
