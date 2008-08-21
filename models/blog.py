@@ -26,8 +26,8 @@ from google.appengine.api import memcache
 from google.appengine.ext import db
 
 import config
+import models
 from models import search
-from models.counter import Counter
 
 # Handle generation of thread strings
 def get_thread_string(article, cur_thread_string):
@@ -42,23 +42,17 @@ def get_thread_string(article, cur_thread_string):
         return None         # Only allow 999 comments on each tree level
     return cur_thread_string + "%03d" % (num_comments + 1)
 
-# Searchable model and entities were derived from code in SDK at
-# under google.appengine.ext import search.  Modifications were
-# necessary to decrease computation that tripped quotas.
-import search
-
 class Article(search.SearchableModel):
-    # The following string-based properties shouldn't be indexed
-    unsearchable_properties = [
-        'permalink', 'legacy_id', 'article_type', 'excerpt', 'html', 'format'
-    ]
+    unsearchable_properties = ['permalink', 'legacy_id', 'article_type', 
+                               'excerpt', 'html', 'format']
+    json_does_not_include = ['assoc_dict']
+
     permalink = db.StringProperty(required=True)
     # Useful for aliasing of old urls
     legacy_id = db.StringProperty()
     title = db.StringProperty(required=True)
-    article_type = db.StringProperty(
-                        required=True, 
-                        choices=set(["article", "blog entry"]))
+    article_type = db.StringProperty(required=True, 
+                                     choices=set(["article", "blog entry"]))
     # Body can be in any format supported by Bloog (e.g. textile)
     body = db.TextProperty(required=True)
     # If available, we use 'excerpt' to summarize instead of 
@@ -68,10 +62,9 @@ class Article(search.SearchableModel):
     html = db.TextProperty()
     published = db.DateTimeProperty(auto_now_add=True)
     updated = db.DateTimeProperty(auto_now_add=True)
-    format = db.StringProperty(
-                        required=True, 
-                        choices=set(["html", "textile", 
-                                     "markdown", "text"]))
+    format = db.StringProperty(required=True, 
+                               choices=set(["html", "textile", 
+                                            "markdown", "text"]))
     # Picked dict for sidelinks, associated Amazon items, etc.
     assoc_dict = db.BlobProperty()
     # To prevent full query when just showing article headlines
@@ -129,7 +122,7 @@ class Article(search.SearchableModel):
         'Returns thread string for next comment for this article'
         return get_thread_string(self, '')
 
-class Comment(db.Model):
+class Comment(models.SerializableModel):
     """Stores comments and their position in comment threads.
 
     Thread string describes the tree using 3 digit numbers.
@@ -164,74 +157,8 @@ class Comment(db.Model):
         'Returns thread string for next child of this comment'
         return get_thread_string(self.article, self.thread + '.')
 
-class MemcachedModel(db.Model):
-    """MemcachedModel adds memcached all() retrieval through list().
-    
-    It adds memcache clearing into Model methods, both class
-    and instance, that alter the datastore.  For valid memcaching,
-    you should use Model methods instead of lower-level db calls.
-    
-    Currently, this class does not care about failed attempts
-    to alter the datastore, so uncompleted deletes and puts
-    will still clear the cache.
-    """
-    list_includes = []
 
-    def delete(self):
-        super(MemcachedModel, self).delete()
-        memcache.delete(self.__class__.memcache_key())
-
-    def put(self):
-        key = super(MemcachedModel, self).put()
-        memcache.delete(self.__class__.memcache_key())
-        return key
-
-    def _to_repr(self):
-        # Handle properties
-        entity = {}
-        self._to_entity(entity)
-        # Add properties/methods in class variable 'add_to_list'
-        for token in self.__class__.list_includes:
-            elems = token.split('.')
-            value = getattr(self, elems[0])
-            for elem in elems[1:]:
-                value = getattr(value, elem)
-            entity[elems[-1]] = value
-        return repr(entity)
-
-    @classmethod
-    def get_or_insert(cls, key_name, **kwds):
-        obj = super(MemcachedModel, cls).get_or_insert(key_name, **kwds)
-        memcache.delete(cls.memcache_key())
-        return obj
-
-    @classmethod
-    def memcache_key(cls):
-        return 'PS_' + cls.__name__ + '_ALL'
-
-    # TODO -- Verify security issues involved with eval of repr.
-    #  Since in Bloog, only admin is creating tags, not an issue,
-    #  but consider possible security issues with injection
-    #  of user data.
-    # TODO -- Break this up so we won't trip quota on huge lists.
-    @classmethod
-    def list(cls, nocache=False):
-        """Returns a list of up to 1000 dicts of model values.
-           Unless nocache is set to True, memcache will be checked first.
-        Returns:
-          List of dicts with each dict holding an entities property names
-          and values.
-        """
-        list_repr = memcache.get(cls.memcache_key())
-        if nocache or list_repr is None:
-            q = db.Query(cls)
-            objs = q.fetch(limit=1000)
-            list_repr = '[' + ','.join([obj._to_repr() for obj in objs]) + ']'
-            memcache.set(cls.memcache_key(), list_repr)
-        return eval(list_repr)
-
-
-class Tag(MemcachedModel):
+class Tag(models.MemcachedModel):
     # Inserts these values into aggregate list returned by Tag.list()
     list_includes = ['counter.count', 'name']
 
@@ -240,7 +167,7 @@ class Tag(MemcachedModel):
         super(Tag, self).delete()
 
     def get_counter(self):
-        counter = Counter('Tag' + self.name)
+        counter = models.Counter('Tag' + self.name)
         return counter
 
     def set_counter(self, value):
@@ -248,7 +175,7 @@ class Tag(MemcachedModel):
         pass
 
     def delete_counter(self):
-        Counter('Tag' + self.name).delete()
+        models.Counter('Tag' + self.name).delete()
 
     counter = property(get_counter, set_counter, delete_counter)
 

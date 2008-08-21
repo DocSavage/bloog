@@ -70,7 +70,8 @@ Developer plugin with Firefox.
 For example, for uploading data into the local datastore, you'd do something
 like this:
 
-clear_datastore.py 'dev_appserver_login="test@example.com:True"'
+clear_datastore.py 'dev_appserver_login="root@example.com:True"'
+(or you could skip the first argument and use the -r or --root options)
 
 For uploading data into a Google AppEngine-hosted app, the cookie would begin
 with ACSID:
@@ -78,6 +79,7 @@ with ACSID:
 clear_datastore.py 'ACSID=AJXUWfE-aefkae...'
 
 Options:
+-r, --root         sets authorization cookie for local dev admin
 -l, --url        = the url (web location) of the Bloog app
 '''
 
@@ -139,19 +141,20 @@ class HttpRESTClient(object):
 def main(argv):
     try:
         try:
-            opts, args = getopt.gnu_getopt(argv, 'hl:v', ["help", "url="])
+            opts, args = getopt.gnu_getopt(argv, 'hrl:v', ["help", "url="])
         except getopt.error, msg:
             raise UsageError(msg)
 
         app_url = 'http://localhost:8080'
-        
-        # option processing
+        local_admin = ''
         for option, value in opts:
             print "Looking at option:", str(option), str(value)
             if option == "-v":
                 verbose = True
             if option in ("-h", "--help"):
                 raise UsageError(help_message)
+            if option in ("-r", "--root"):
+                local_admin = 'dev_appserver_login="root@example.com:True"'
             if option in ("-l", "--url"):
                 print "Got url:", value
                 app_url = value
@@ -160,11 +163,11 @@ def main(argv):
                 if app_url[-1] == '/':
                     app_url = app_url[:-1]
 
-        if len(args) < 2:
+        if len(args) < 2 and not local_admin:
             raise UsageError("Please specify the authentication cookie "
                              "string as first argument.")
         else:
-            auth_cookie = args[1]
+            auth_cookie = local_admin or args[1]
 
             #TODO - Use mechanize module to programmatically login
             #email = raw_input("E-mail: ")

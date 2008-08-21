@@ -294,7 +294,9 @@ class FullTextQuery(db.Query):
       query.Search(self._search_query)
     return query
 
-class SearchableModel(db.Model):
+import models
+
+class SearchableModel(models.SerializableModel):
   """A subclass of db.Model that supports full text search and indexing.
 
   Automatically indexes all string-based properties. To search, use the all()

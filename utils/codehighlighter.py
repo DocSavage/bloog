@@ -22,8 +22,10 @@
 
 import string
 import re
+import logging
 
 from external.BeautifulSoup import BeautifulSoup
+from utils import sanitizer
 
 language_jsfiles = {
     'python': 'Python',
@@ -39,8 +41,7 @@ def process_html(html):
     """Processes HTML for embedded code using SyntaxHighlighter
     
     Determines languages used by checking class attribute of pre tags
-    with name="code".  Also converts all opening triangular brackets (<)
-    to &lt; within the embedded code, not the surrounding pre tags.
+    with name="code".
 
     Args:
       html: HTML to be processed for embedded code
@@ -62,10 +63,7 @@ def process_html(html):
         else:
             clean_html += txt
             
-    #for tag in soup.findAll('pre', attrs={'name': 'code'}):
-    #    languages.add(tag['class'])
-    
     # Map the language class names to the spelling for javascript files
     list_language_files = [language_jsfiles[lang] for lang in list(languages)]
-    return clean_html, list_language_files
+    return sanitizer.clean_multiline(clean_html), list_language_files
 

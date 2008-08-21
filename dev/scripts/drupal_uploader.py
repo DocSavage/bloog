@@ -65,7 +65,7 @@ import MySQLdb
 
 from utils.external import textile
 
-help_message = '''
+help_message = """
 First argument must be an authentication cookie that can be cut & pasted after
 logging in with a browser.  Cookies can be easily viewed by using the Web
 Developer plugin with Firefox.
@@ -73,7 +73,8 @@ Developer plugin with Firefox.
 For example, for uploading data into the local datastore, you'd do something
 like this:
 
-drupal_uploader.py 'dev_appserver_login="test@example.com:True"'
+drupal_uploader.py 'dev_appserver_login="root@example.com:True"'
+(or you could skip the first argument and use the -r or --root options)
 
 For uploading data into a Google AppEngine-hosted app, the cookie would begin
 with ACSID:
@@ -81,13 +82,14 @@ with ACSID:
 drupal_uploader.py 'ACSID=AJXUWfE-aefkae...'
 
 Options:
+-r, --root         sets authorization cookie for local dev admin
 -d, --dbhostname = hostname of MySQL server (default is 'localhost')
 -p, --dbport     = port of MySQL server (default is '3306')
 -u, --dbuserpwd  = user:passwd for MySQL server (e.g., 'johndoe:mypasswd')
 -n, --dbname     = name of Drupal database name (default is 'drupal')
 -l, --url        = the url (web location) of the Bloog app
 -a, --articles   = only upload this many articles (for testing)
-'''
+"""
 
 # List the ASCII chars that are OK for our pages
 OK_CHARS = range(32,126) + [ord(x) for x in ['\n', '\t', '\r']]
@@ -362,10 +364,10 @@ class DrupalConverter(object):
 def main(argv):
     try:
         try:
-            opts, args = getopt.gnu_getopt(argv, 'hd:p:u:n:l:a:v', 
-                                           ["help", "dbhostname=", "dbport=",   
-                                            "dbuserpwd=", "dbname=", "url=", 
-                                            "articles="])
+            opts, args = getopt.gnu_getopt(argv, 'hrd:p:u:n:l:a:v',
+                                           ["help", "root", "dbhostname=",
+                                            "dbport=", "dbuserpwd=", "dbname=",
+                                            "url=", "articles="])
         except getopt.error, msg:
             raise UsageError(msg)
 
@@ -378,12 +380,15 @@ def main(argv):
         num_articles = None
         
         # option processing
+        local_admin = None
         for option, value in opts:
             print "Looking at option:", str(option), str(value)
             if option == "-v":
                 verbose = True
             if option in ("-h", "--help"):
                 raise UsageError(help_message)
+            if option in ("-r", "--root"):
+                local_admin = 'dev_appserver_login="root@example.com:True"'
             if option in ("-d", "--dbhostname"):
                 dbhostname = value
             if option in ("-p", "--dbport"):
@@ -409,11 +414,11 @@ def main(argv):
                 if app_url[-1] == '/':
                     app_url = app_url[:-1]
 
-        if len(args) < 2:
+        if len(args) < 2 and not local_admin:
             raise UsageError("Please specify the authentication cookie string"
                              " as first argument.")
         else:
-            auth_cookie = args[1]
+            auth_cookie = local_admin or args[1]
 
             #TODO - Use mechanize module to programmatically login
             #email = raw_input("E-mail: ")

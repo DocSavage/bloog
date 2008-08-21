@@ -77,11 +77,9 @@ def get_view_file(handler, params={}):
 
     verb = handler.request.method.lower()
     class_name = str(handler.__class__)
-    logging.debug("view class name: %s", class_name)
     nmatch = re.match(HANDLER_PATTERN, class_name)
     if nmatch:
         handler_path = nmatch.group('handler_path').split('.')
-        logging.debug("view handler modules: %s", handler_path)
         if len(handler_path) == 3:
             app_name = to_filename(handler_path[0])
         else:
@@ -112,12 +110,10 @@ def get_view_file(handler, params={}):
     if app_name:
         template_dirs += (os.path.join(root_folder, app_name),)
     template_dirs += (root_folder,)
-    logging.debug("Template_dirs: %s", template_dirs)
         
     # Now check possible extensions for the given template file.
     if module_name and handler_name:
         filename_prefix = os.path.join(root_folder, app_name, module_name, handler_name)
-        logging.debug("Looking for template with prefix %s", filename_prefix)
         possible_roles = []
         if users.is_current_user_admin():
             possible_roles.append('.admin.')

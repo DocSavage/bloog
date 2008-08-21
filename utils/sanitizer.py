@@ -59,6 +59,16 @@ class DangerousHTMLError(Exception):
     def __str__(self):
         return ' ~ '.join(self.value)
 
+# List the ASCII chars that are OK for our pages
+OK_CHARS = range(32,126) + [ord(x) for x in ['\n', '\t', '\r']]
+OK_TITLE = range(32,126)
+
+def clean_multiline(raw_string):
+    return ''.join([x for x in raw_string if ord(x) in OK_CHARS])
+
+def clean_singleline(raw_string):
+    return ''.join([x for x in raw_string if ord(x) in OK_TITLE])
+
 def sanitize_html(html='<p>No comment</p>', 
                   allow_tags=[], allow_attributes=[],
                   blacklist_tags=[], blacklist_attributes=[]):
