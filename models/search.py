@@ -312,7 +312,7 @@ class SearchableModel(models.SerializableModel):
     """Wraps db.Model._populate_internal_entity() and injects
     SearchableEntity."""
     entity = db.Model._populate_internal_entity(self,
-                                                _entity_class=SearchableEntity)
+                                            _entity_class=SearchableEntity)
     entity.unsearchable_properties = self.__class__.unsearchable_properties
     return entity
 

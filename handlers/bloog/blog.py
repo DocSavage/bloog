@@ -88,14 +88,13 @@ def get_format(format_string):
         format_string = 'html'
     return format_string
 
-def get_tag_key(tag_string):
-    obj = models.blog.Tag.get_or_insert(tag_string)
+def get_tag_key(tag_name):
+    obj = models.blog.Tag.get_or_insert(tag_name)
     return obj.key()
 
 def get_tags(tags_string):
     if tags_string:
-        return [get_tag_key(s.strip()) for s in tags_string.split(",") 
-                if s != '']
+        return [s.strip() for s in tags_string.split(",") if s != '']
     return None
     
 def get_friendly_url(title):
@@ -146,9 +145,13 @@ def process_article_edit(handler, permalink):
          ('html', get_html, 'body', 'format')])
 
     if property_hash:
+        if 'tags' in property_hash:
+            property_hash['tag_keys'] = [get_tag_key(name) 
+                                         for name in property_hash['tags']]
         article = db.Query(models.blog.Article).filter('permalink =', permalink).get()
         before_tags = set(article.tags)
         for key,value in property_hash.iteritems():
+            logging.debug("  Setting %s", key)
             setattr(article, key, value)
         after_tags = set(article.tags)
         for removed_tag in before_tags - after_tags:
@@ -175,6 +178,9 @@ def process_article_submission(handler, article_type):
          ('permalink', permalink_funcs[article_type], 'title', 'published')])
 
     if property_hash:
+        if 'tags' in property_hash:
+            property_hash['tag_keys'] = [get_tag_key(name) 
+                                         for name in property_hash['tags']]
         property_hash['format'] = 'html'   # For now, convert all to HTML
         property_hash['article_type'] = article_type
         article = models.blog.Article(**property_hash)
@@ -183,8 +189,8 @@ def process_article_submission(handler, article_type):
              'amazon_items': handler.request.get('amazon_items')})
         process_embedded_code(article)
         article.put()
-        for tag in article.tags:
-            db.get(tag).counter.increment()
+        for key in article.tag_keys:
+            db.get(key).counter.increment()
         restful.send_successful_response(handler, '/' + article.permalink)
         view.invalidate_cache()
     else:
@@ -260,24 +266,32 @@ def process_comment_submission(handler, article):
 
 def render_article(handler, article):
     if article:
-        # Generate two parts of a captcha that will use
-        # display:none in between.  This step in the anti-spam
-        # war race due to the following article:
-        # http://techblog.tilllate.com/2008/07/20/ten-methods-to-obfuscate-e-mail-addresses-compared/
-        captcha = get_captcha(article.key())
-        two_columns = article.two_columns
-        if two_columns is None:
-            two_columns = article.is_big()
-        allow_comments = article.allow_comments
-        if allow_comments is None:
-            age = (datetime.datetime.now() - article.published).days
-            allow_comments = (age <= config.BLOG['days_can_comment'])
-        page = view.ViewPage()
-        page.render(handler, { "two_columns": two_columns,
-                               "allow_comments": allow_comments,
-                               "article": article,
-                               "captcha1": captcha[:3],
-                               "captcha2": captcha[3:6] })
+        # Check if client is requesting javascript and
+        # return json if javascript is #1 in Accept header.
+        logging.debug("article Accept: %s", handler.request.headers['Accept'])
+        accept_list = handler.request.headers['Accept']
+        if accept_list and accept_list.split(',')[0] == 'application/json':
+            handler.response.headers['Content-Type'] = 'application/json'
+            handler.response.out.write(article.to_json())
+        else:
+            # Generate two parts of a captcha that will use
+            # display:none in between.  This step in the anti-spam
+            # war race due to the following article:
+            # http://techblog.tilllate.com/2008/07/20/ten-methods-to-obfuscate-e-mail-addresses-compared/
+            captcha = get_captcha(article.key())
+            two_columns = article.two_columns
+            if two_columns is None:
+                two_columns = article.is_big()
+            allow_comments = article.allow_comments
+            if allow_comments is None:
+                age = (datetime.datetime.now() - article.published).days
+                allow_comments = (age <= config.BLOG['days_can_comment'])
+            page = view.ViewPage()
+            page.render(handler, { "two_columns": two_columns,
+                                   "allow_comments": allow_comments,
+                                   "article": article,
+                                   "captcha1": captcha[:3],
+                                   "captcha2": captcha[3:6] })
     else:
         # This didn't fall into any of our pages or aliases.
         # Page not found.
@@ -419,8 +433,8 @@ class BlogEntryHandler(restful.Controller):
         logging.debug("Deleting blog entry %s", permalink)
         article = db.Query(models.blog.Article). \
                      filter('permalink =', permalink).get()
-        for tag in article.tags:
-            db.get(tag).counter.decrement()
+        for key in article.tag_keys:
+            db.get(key).counter.decrement()
         article.delete()
         view.invalidate_cache()
         restful.send_successful_response(self, "/")
@@ -430,13 +444,12 @@ class TagHandler(restful.Controller):
         tag =  re.sub('(%25|%)(\d\d)', 
                       lambda cmatch: chr(string.atoi(cmatch.group(2), 16)),                 
                       encoded_tag)   # No urllib.unquote in AppEngine?
-        tag_key = db.Key.from_path('Tag', tag)
         page = view.ViewPage()
         page.render_query(
             self, 'articles', 
             db.Query(models.blog.Article).filter('tags =',        
-                                           tag_key).order('-published'), 
-            {'tag': tag})
+                                                 tag).order('-published'), 
+                                                {'tag': tag})
 
 class SearchHandler(restful.Controller):
     def get(self):

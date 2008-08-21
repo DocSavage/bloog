@@ -70,7 +70,8 @@ class Article(search.SearchableModel):
     # To prevent full query when just showing article headlines
     num_comments = db.IntegerProperty(default=0)
     # Use keys instead of db.Category for consolidation of tag names
-    tags = db.ListProperty(db.Key)
+    tags = db.StringListProperty(default=[])
+    tag_keys = db.ListProperty(db.Key, default=[])
     two_columns = db.BooleanProperty()
     allow_comments = db.BooleanProperty()
     # A list of languages for code embedded in article.

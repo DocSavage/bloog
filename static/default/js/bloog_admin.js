@@ -47,15 +47,23 @@ YAHOO.bloog.initAdmin = function() {
                 hdr.setContent('Submit Edit');
                 YAHOO.bloog.http.action = '?_method=PUT';
                 YAHOO.bloog.http.verb = 'POST';
-                // Parse the current article HTML into title, tags, and body.
-                var blog_title = document.getElementById("blogtitle").innerHTML;
-                var blog_body =  document.getElementById("blogbody").innerHTML;
-                document.getElementById("postTitle").value = blog_title;
-                YAHOO.bloog.editor.setEditorHTML(blog_body);
+                // Get the current article content and populate the dialog
+                YAHOO.util.Connect.initHeader('Accept', 'application/json');
+                YAHOO.util.Connect.asyncRequest('GET', '#', {
+                    success: YAHOO.bloog.populateDialog,
+                    failure: YAHOO.bloog.handleFailure
+                }, null);
                 break;
         }
         YAHOO.bloog.postDialog.render();
         YAHOO.bloog.postDialog.show();
+    }
+
+    YAHOO.bloog.populateDialog = function(o) {
+        var article = eval('(' + o.responseText + ')')
+        document.getElementById("postTitle").value = article.title;
+        document.getElementById("postTags").value = article.tags.join(', ');
+        YAHOO.bloog.editor.setEditorHTML(article.body);
     }
 
     var handleSubmit = function() {

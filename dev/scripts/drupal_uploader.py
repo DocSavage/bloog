@@ -227,9 +227,6 @@ class DrupalConverter(object):
 
     def get_html(self, raw_body, markup_type):
         """ Convert various Drupal formats to html """
-
-        body = clean_multiline(raw_body)
-
         def repl(tmatch):
             if tmatch:
                 return textile.textile(tmatch.group(1))
@@ -239,10 +236,12 @@ class DrupalConverter(object):
         if markup_type == 'textile':
             pattern = re.compile('\[textile\](.*)\[/textile\]', 
                                  re.MULTILINE | re.IGNORECASE | re.DOTALL)
-            return re.sub(pattern, repl, body)
-        if markup_type == 'filtered html':
-            return re.sub('\n', '<br />', body)
-        return body
+            body = re.sub(pattern, repl, raw_body)
+        elif markup_type == 'filtered html':
+            body = re.sub('\n', '<br />', raw_body)
+        else:
+            body = raw_body
+        return clean_multiline(body)
 
     def go(self, num_articles=None):
         # Get all the term (tag) data and the hierarchy pattern
