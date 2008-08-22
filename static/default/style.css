@@ -91,6 +91,7 @@ ul#imgLinks{list-style:none;margin:7px 0;}
 #imgLinks li a img{border:3px solid #EEE;width:208px;color:#333;font-weight:bold;}
 #imgLinks li a img.anyheight{border:none;width:214px;color:#333;font-weight:bold;}
 #imgLinks li a:hover img{border-color:#DDD;}
+#amazon{margin:0 0 0 30px;}
 
 /* wordpress entries styling - main content column */
 .postMeta{background:url(images/dot.gif) repeat-x left center;text-transform:uppercase;font-size:11px;text-align:right;margin-bottom:5px;}
