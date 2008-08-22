@@ -3,11 +3,6 @@ Implementation of JSONEncoder
 """
 import re
 
-try:
-    from simplejson._speedups import encode_basestring_ascii as c_encode_basestring_ascii
-except ImportError:
-    pass
-
 ESCAPE = re.compile(r'[\x00-\x1f\\"\b\f\n\r\t]')
 ESCAPE_ASCII = re.compile(r'([\\"]|[^\ -~])')
 HAS_UTF8 = re.compile(r'[\x80-\xff]')

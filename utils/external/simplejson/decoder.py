@@ -4,11 +4,7 @@ Implementation of JSONDecoder
 import re
 import sys
 
-from simplejson.scanner import Scanner, pattern
-try:
-    from simplejson._speedups import scanstring as c_scanstring
-except ImportError:
-    pass
+from utils.external.simplejson.scanner import Scanner, pattern
 
 FLAGS = re.VERBOSE | re.MULTILINE | re.DOTALL
 
