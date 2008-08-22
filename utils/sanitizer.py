@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+import logging
 import string
 import re
 
@@ -59,19 +60,10 @@ class DangerousHTMLError(Exception):
     def __str__(self):
         return ' ~ '.join(self.value)
 
-# List the ASCII chars that are OK for our pages
-OK_CHARS = range(32,126) + [ord(x) for x in ['\n', '\t', '\r']]
-OK_TITLE = range(32,126)
-
-def clean_multiline(raw_string):
-    return ''.join([x for x in raw_string if ord(x) in OK_CHARS])
-
-def clean_singleline(raw_string):
-    return ''.join([x for x in raw_string if ord(x) in OK_TITLE])
-
-def sanitize_html(html='<p>No comment</p>', 
+def sanitize_html(html='<p>No comment</p>', encoding=None,
                   allow_tags=[], allow_attributes=[],
-                  blacklist_tags=[], blacklist_attributes=[]):
+                  blacklist_tags=[], blacklist_attributes=[],
+                  allow_styling=False):
     """Parses HTML and tries to sanitize it using white list.
     
     This method is a mishmash of code from Django snippets
@@ -83,9 +75,10 @@ def sanitize_html(html='<p>No comment</p>',
     So sanitized HTML cannot be colored or highlighted using styles.
 
     Args:
-      html: HTML to be sanitized
+      html: HTML to be sanitized.
       allow_tags: limit all tags to just this list
       allow_attributes: limit all tags to just this list
+      allow_styling: should only be TRUE if you trust source
 
     Returns:
       Sanitized version of html
@@ -100,9 +93,17 @@ def sanitize_html(html='<p>No comment</p>',
     allow_tags = [tag for tag in allow_tags if tag not in blacklist_tags]
     allow_attributes = [tag for tag in allow_attributes 
                         if tag not in blacklist_tags]
+    if allow_styling:
+        allow_attributes.append('style')
 
-    #cleaner_html = limit_xss_vectors(html)
-    soup = BeautifulSoup(html)
+    if isinstance(html, unicode) and not encoding:
+        logging.debug("Sanitizing unicode input.")
+        soup = BeautifulSoup(html)
+    else:
+        if not encoding:
+            encoding = 'latin-1'
+        logging.debug("Sanitizing string input, assuming %s", encoding)
+        soup = BeautifulSoup(html.decode(encoding, 'ignore'))
     for comment in soup.findAll(
                     text = lambda text: isinstance(text, Comment)):
         comment.extract()
@@ -121,7 +122,7 @@ def sanitize_html(html='<p>No comment</p>',
                         raise DangerousHTMLError(html)
                 ok_attrs += [(attr, val)]
         tag.attrs = ok_attrs
-    return soup.renderContents().decode('utf8')
+    return soup.renderContents().decode('utf-8')
 
 def chop_up(text, chop_size=5):
     "Returns a list of smaller chunks of text"

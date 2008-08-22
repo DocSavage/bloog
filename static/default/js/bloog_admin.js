@@ -33,6 +33,8 @@ YAHOO.bloog.initAdmin = function() {
                 YAHOO.bloog.http.action = '/';
                 YAHOO.bloog.http.verb = 'POST';
                 YAHOO.bloog.editor.setEditorHTML('<p>Article goes here</p>');
+                YAHOO.bloog.postDialog.render();
+                YAHOO.bloog.postDialog.show();
                 break;
             case 'newblog':
                 hdr.setContent('Submit Blog Entry');
@@ -42,6 +44,8 @@ YAHOO.bloog.initAdmin = function() {
                 YAHOO.bloog.http.action = "/" + year + "/" + month;
                 YAHOO.bloog.http.verb = 'POST';
                 YAHOO.bloog.editor.setEditorHTML('<p>Blog entry goes here</p>');
+                YAHOO.bloog.postDialog.render();
+                YAHOO.bloog.postDialog.show();
                 break;
             case 'editbtn':
                 hdr.setContent('Submit Edit');
@@ -55,8 +59,6 @@ YAHOO.bloog.initAdmin = function() {
                 }, null);
                 break;
         }
-        YAHOO.bloog.postDialog.render();
-        YAHOO.bloog.postDialog.show();
     }
 
     YAHOO.bloog.populateDialog = function(o) {
@@ -64,6 +66,8 @@ YAHOO.bloog.initAdmin = function() {
         document.getElementById("postTitle").value = article.title;
         document.getElementById("postTags").value = article.tags.join(', ');
         YAHOO.bloog.editor.setEditorHTML(article.body);
+        YAHOO.bloog.postDialog.render();
+        YAHOO.bloog.postDialog.show();
     }
 
     var handleSubmit = function() {
@@ -112,7 +116,7 @@ YAHOO.bloog.initAdmin = function() {
         animate: true,
         toolbar: {
             titlebar: '',
-            draggable: false,
+            draggable: true,
             buttonType: 'advanced',
             buttons: [
                 /*** Prefer to have blog articles of one font and use consistent sizing

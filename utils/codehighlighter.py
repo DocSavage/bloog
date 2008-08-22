@@ -50,7 +50,8 @@ def process_html(html):
       The modified html and a list of strings giving the embedded
       code languages.
     """
-    code_tag = re.compile('<pre name="code" class="([^"]+)">', re.MULTILINE)
+    code_tag = re.compile('\s*<pre name="code" class="([^"]+)">', 
+                          re.MULTILINE)
     languages = set([])
     soup = BeautifulSoup(html)
     clean_html = ''
@@ -65,5 +66,5 @@ def process_html(html):
             
     # Map the language class names to the spelling for javascript files
     list_language_files = [language_jsfiles[lang] for lang in list(languages)]
-    return sanitizer.clean_multiline(clean_html), list_language_files
+    return clean_html.decode('utf-8'), list_language_files
 

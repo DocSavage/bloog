@@ -116,11 +116,11 @@ __history__ = """
 """
 
 # Set your encoding here.
-ENCODING = 'latin-1'
+ENCODING = 'utf-8'
 
 # Output? Non-ASCII characters will be automatically
 # converted to XML entities if you choose ASCII.
-OUTPUT = 'ascii'
+OUTPUT = 'utf-8'
 
 # PyTextile can optionally validate the generated
 # XHTML code. We can use either mxTidy or uTidyLib.

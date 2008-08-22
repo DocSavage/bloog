@@ -14,7 +14,7 @@ logging.info("Starting application in DEBUG mode: %s", DEBUG)
 DEFAULT_BLOG = {
     "bloog_version": "0.8",
     "html_type": "text/html",
-    "charset": "iso-8859-1",
+    "charset": "utf-8",
     "title": "Bloog",
     "author": "Bill Katz",
     # This must be the email address of a registered administrator for the 

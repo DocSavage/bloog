@@ -62,10 +62,10 @@ def get_sent_properties(request_func, propname_list):
     """
     prop_hash = {}
     for item in propname_list:
-        if type(item) == str:
+        if isinstance(item, basestring):
             key = item
             value = request_func(item)
-        elif type(item == tuple):
+        elif isinstance(item, tuple):
             key = item[0]
             prop_func = item[1]
             if len(item) <= 2:

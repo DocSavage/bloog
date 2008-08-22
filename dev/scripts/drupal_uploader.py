@@ -90,16 +90,23 @@ Options:
 -l, --url        = the url (web location) of the Bloog app
 -a, --articles   = only upload this many articles (for testing)
 """
+DB_ENCODING = 'latin-1'
 
 # List the ASCII chars that are OK for our pages
+NEWLINE_CHARS = [ord(x) for x in ['\n', '\t', '\r']]
 OK_CHARS = range(32,126) + [ord(x) for x in ['\n', '\t', '\r']]
 OK_TITLE = range(32,126)
 
 def clean_multiline(raw_string):
     return ''.join([x for x in raw_string if ord(x) in OK_CHARS])
 
-def clean_singleline(raw_string):
-    return ''.join([x for x in raw_string if ord(x) in OK_TITLE])
+def force_singleline(raw_string):
+    return ''.join([x for x in raw_string if ord(x) not in NEWLINE_CHARS])
+
+def fix_string(str_from_db):
+    # Add encoding change here if needed.
+    # For Bloog, will just output latin-1 and let it convert to utf-8
+    return str_from_db
 
 def fix_thread_string(tstr):
     """
@@ -227,21 +234,25 @@ class DrupalConverter(object):
 
     def get_html(self, raw_body, markup_type):
         """ Convert various Drupal formats to html """
+        
+        utf8_body = fix_string(raw_body)
+
         def repl(tmatch):
-            if tmatch:
-                return textile.textile(tmatch.group(1))
+            if tmatch:   # Assume latin-1.  Will be converted by Bloog.
+                return textile.textile(tmatch.group(1), 
+                                       encoding='latin-1', output='latin-1')
 
         # Because Drupal textile formatting allows use of [textile][/textile] 
         # delimeters, remove them.
         if markup_type == 'textile':
             pattern = re.compile('\[textile\](.*)\[/textile\]', 
                                  re.MULTILINE | re.IGNORECASE | re.DOTALL)
-            body = re.sub(pattern, repl, raw_body)
+            body = re.sub(pattern, repl, utf8_body)
         elif markup_type == 'filtered html':
-            body = re.sub('\n', '<br />', raw_body)
+            body = re.sub('\n', '<br />', utf8_body)
         else:
             body = raw_body
-        return clean_multiline(body)
+        return body
 
     def go(self, num_articles=None):
         # Get all the term (tag) data and the hierarchy pattern
@@ -266,7 +277,7 @@ class DrupalConverter(object):
             ntype = row[1]
             if ntype in ['page', 'blog']:
                 article['legacy_id'] = row[0]
-                article['title'] = clean_singleline(row[2])
+                article['title'] = force_singleline(row[2])
                 article['format'] = None
                 if row[14] >= 0 and row[14] <= 4:
                     cur_format = self.drupal_format_description[row[14]]
@@ -333,13 +344,13 @@ class DrupalConverter(object):
                 # Store comment associated with article by POST to 
                 # article entry url
                 comment = {
-                    'title': clean_singleline(row[0]),
-                    'body': clean_multiline(row[1]),
+                    'title': force_singleline(row[0]),
+                    'body': fix_string(row[1]),
                     'published': str(datetime.datetime.fromtimestamp(row[2])),
-                    'thread': fix_thread_string(clean_singleline(row[3])),
-                    'name': clean_singleline(row[4]),
-                    'email': clean_singleline(row[5]),
-                    'homepage': clean_singleline(row[6])
+                    'thread': fix_thread_string(force_singleline(row[3])),
+                    'name': force_singleline(row[4]),
+                    'email': force_singleline(row[5]),
+                    'homepage': force_singleline(row[6])
                 }
                 print "Posting comment '" + row[0] + "' to", \
                       comment_posting_url

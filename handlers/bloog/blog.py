@@ -52,6 +52,7 @@ from google.appengine.ext.webapp import template
 
 from handlers import restful
 from utils import authorized
+from utils import sanitizer
 import models
 import view
 import config
@@ -89,12 +90,26 @@ def get_format(format_string):
     return format_string
 
 def get_tag_key(tag_name):
-    obj = models.blog.Tag.get_or_insert(tag_name)
+    obj = models.blog.Tag.get_or_insert(tag_name.lower())
     return obj.key()
 
+def process_tag(tag_name, tags):
+    # Check tag_name against all 'name' values in tags and coerce
+    tag_name = tag_name.strip()
+    lowercase_name = tag_name.lower()
+    for tag in tags:
+        if lowercase_name == tag['name'].lower():
+            return tag['name']
+    return tag_name
+
 def get_tags(tags_string):
+    logging.debug("get_tags: tag_string = %s", tags_string)
     if tags_string:
-        return [s.strip() for s in tags_string.split(",") if s != '']
+        from models.blog import Tag
+        tags = Tag.list()
+        logging.debug("  tags = %s", tags)
+        return [process_tag(s, tags) 
+                for s in tags_string.split(",") if s != '']
     return None
     
 def get_friendly_url(title):
@@ -105,23 +120,23 @@ def get_friendly_url(title):
 def get_html(body, markup_type):
     if markup_type == 'textile':
         from external.libs import textile
-        return textile.textile(str(body))
+        return textile.textile(body)
     return body
 
 def get_captcha(key):
     return ("%X" % abs(hash(str(key) + config.BLOG['title'])))[:6]
 
-def sanitize_html(html):
-    from utils import sanitizer
-    try:
-        clean_html = sanitizer.sanitize_html(html, 
-                                             allow_attributes=['href', 'src'],
-                                             blacklist_tags=['img'])
-        return clean_html
-    except sanitizer.DangerousHTMLError, e:
-        logging.error("Sanitized HTML has dangerous elements: %s", e.value)
-        return None
-
+def get_sanitizer_func(handler, **kwargs):
+    match_obj = re.match(r'.*;\s*charset=(?P<charset>[\w-]+)',  
+                         handler.request.headers['CONTENT_TYPE'])
+    kwlist = {}
+    kwlist.update(kwargs)
+    if match_obj:
+        kwlist.update({ 'encoding': match_obj.group('charset').lower() })
+    logging.debug("Content-type: %s", handler.request.headers['CONTENT_TYPE'])
+    logging.debug("In sanitizer: %s", kwlist)
+    return lambda html : sanitizer.sanitize_html(html, **kwlist)
+        
 def process_embedded_code(article):
     # TODO -- Check for embedded code, escape opening triangular brackets
     # within code, and set article embedded_code strings so we can
@@ -138,7 +153,7 @@ def process_article_edit(handler, permalink):
         params[key] = value[0]
     property_hash = restful.get_sent_properties(params.get,
         ['title',
-         'body',
+         ('body', get_sanitizer_func(handler, allow_styling=True)),
          ('format', get_format),
          ('updated', get_datetime),
          ('tags', get_tags),
@@ -149,11 +164,10 @@ def process_article_edit(handler, permalink):
             property_hash['tag_keys'] = [get_tag_key(name) 
                                          for name in property_hash['tags']]
         article = db.Query(models.blog.Article).filter('permalink =', permalink).get()
-        before_tags = set(article.tags)
+        before_tags = set(article.tag_keys)
         for key,value in property_hash.iteritems():
-            logging.debug("  Setting %s", key)
             setattr(article, key, value)
-        after_tags = set(article.tags)
+        after_tags = set(article.tag_keys)
         for removed_tag in before_tags - after_tags:
             db.get(removed_tag).counter.decrement()
         for added_tag in after_tags - before_tags:
@@ -168,7 +182,7 @@ def process_article_edit(handler, permalink):
 def process_article_submission(handler, article_type):
     property_hash = restful.get_sent_properties(handler.request.get, 
         ['title',
-         'body',
+         ('body', get_sanitizer_func(handler, allow_styling=True)),
          'legacy_id',
          ('format', get_format),
          ('published', get_datetime),
@@ -197,22 +211,19 @@ def process_article_submission(handler, article_type):
         handler.error(400)
 
 def process_comment_submission(handler, article):
+    sanitize_comment = get_sanitizer_func(handler,
+                                          allow_attributes=['href', 'src'],
+                                          blacklist_tags=['img'])
     property_hash = restful.get_sent_properties(handler.request.get, 
         ['name',
          'email',
          'homepage',
          'title',
-         'body',
+         ('body', sanitize_comment),
          'key',
          'thread',    # If it's given, use it.  Else generate it.
          'captcha',
          ('published', get_datetime)])
-    html = sanitize_html(property_hash['body'])
-    if html is None:
-        handler.error(400)
-        return
-    else:
-        property_hash['body'] = html
 
     # If we aren't administrator, abort if bad captcha
     if not users.is_current_user_admin():
@@ -255,8 +266,14 @@ def process_comment_submission(handler, article):
         article.num_comments += 1
     property_hash['article'] = article.put()
 
-    comment = models.blog.Comment(**property_hash)
-    comment.put()
+    try:
+        comment = models.blog.Comment(**property_hash)
+        comment.put()
+    except:
+        logging.debug("Bad comment: %s", property_hash)
+        handler.error(400)
+        return
+
     # Render just this comment and send it to client
     response = template.render(
         "views/%s/bloog/blog/comment.html" % config.BLOG['theme'], 
@@ -326,6 +343,7 @@ class RootHandler(restful.Controller):
         process_article_submission(handler=self, article_type='article')
 
 # Articles are off root url
+# TODO -- Make it DRY by combining Article/MonthHandler
 class ArticleHandler(restful.Controller):
     def get(self, path):
         logging.debug("ArticleHandler#get on path (%s)", path)
@@ -362,9 +380,6 @@ class ArticleHandler(restful.Controller):
         By using DELETE on /Article, /Comment, /Tag, you can delete the first 
          entity of the desired kind.
         This is useful for writing utilities like clear_datastore.py.  
-        TODO - Once we write a DELETE for specific entities, it makse sense to 
-         DRY this up and just require a utility to inquire which entities are 
-         available and then call DELETE on each permalink.
         """
         # TODO: Add DELETE for articles off root like blog entry DELETE.
         model_class = path.lower()
@@ -396,7 +411,13 @@ class ArticleHandler(restful.Controller):
             query = models.blog.Tag.all()
             delete_entity(query)
         else:
-            self.error(404)
+            article = db.Query(models.blog.Article). \
+                         filter('permalink =', path).get()
+            for key in article.tag_keys:
+                db.get(key).counter.decrement()
+            article.delete()
+            view.invalidate_cache()
+            restful.send_successful_response(self, "/")
 
 # Blog entries are dated articles
 class BlogEntryHandler(restful.Controller):
