@@ -160,10 +160,10 @@ class ViewPage(object):
             "user_is_admin": users.is_current_user_admin(),
             "login_url": users.create_login_url(handler.request.uri),
             "logout_url": users.create_logout_url(handler.request.uri),
-            "blog": config.BLOG or config.DEFAULT_BLOG,
+            "blog": config.BLOG,
             "blog_tags": tags
         }
-        template_params.update(config.PAGE or config.DEFAULT_PAGE)
+        template_params.update(config.PAGE)
         template_params.update(more_params)
         return template.render(template_info['file'], template_params,
                                debug=config.DEBUG, 

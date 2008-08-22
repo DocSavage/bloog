@@ -90,7 +90,7 @@ def get_format(format_string):
     return format_string
 
 def get_tag_key(tag_name):
-    obj = models.blog.Tag.get_or_insert(tag_name.lower())
+    obj = models.blog.Tag.get_or_insert(tag_name)
     return obj.key()
 
 def process_tag(tag_name, tags):

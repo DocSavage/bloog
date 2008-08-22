@@ -11,7 +11,7 @@ logging.info("Starting application in DEBUG mode: %s", DEBUG)
 # Don't change default_blog or default_page to prevent conflicts when merging #  Bloog source code updates.
 # Do change blog or page dictionaries at the bottom of this config module.
 
-DEFAULT_BLOG = {
+BLOG = {
     "bloog_version": "0.8",
     "html_type": "text/html",
     "charset": "utf-8",
@@ -43,8 +43,8 @@ DEFAULT_BLOG = {
     #"legacy_blog_software": "Drupal"
 }
 
-DEFAULT_PAGE = {
-    "title": DEFAULT_BLOG["title"],
+PAGE = {
+    "title": BLOG["title"],
     "navlinks": [
         { "title": "Link", "description": "Short description", "url": "#"},
         { "title": "Link", "description": "Short description", "url": "#"},
@@ -55,9 +55,6 @@ DEFAULT_PAGE = {
         "title": "Bloog Development",
         "description": "Get involved",
         "entries": [
-            { "title": "Announcement", 
-              "url": "http://billkatz-test.appspot.com", 
-              "description": "Author's Bloog" },
             { "title": "Source Code", 
               "url": "http://github.com/DocSavage/bloog", 
               "description": "GitHub repository" },
@@ -67,10 +64,12 @@ DEFAULT_PAGE = {
             { "title": "Group", 
               "url": "http://groups.google.com/group/bloog/topics", 
               "description": "Developer discussion" },
+            { "title": "Author's Bloog", 
+              "url": "http://www.billkatz.com", 
+              "description": "What's brewing" },
             { "title": "Architecture Diagram", 
               "url": "/static/images/architecture2.png", 
-              "description": 
-                "How Bloog interacts with clients through REST HTTP" }
+              "description": "RESTful Bloog" }
         ]
     },
     "featuredOthersPages": {
@@ -80,22 +79,15 @@ DEFAULT_PAGE = {
             { "title": "Google App Engine", 
               "url": "http://code.google.com/appengine/", 
               "description": "The mothership" },
-            { "title": "AppEngine Group", 
+            { "title": "App Engine Group", 
               "url": "http://groups.google.com/group/google-appengine", 
-              "description": "Google Group for App Engine developers" },
-            { "title": "GAE SWF Project", 
-              "url": "http://gaeswf.appspot.com/", 
-              "description": "Flash and Flex on Google AppEngine" },
-            { "title": "Dev Console", 
-              "url": "http://localhost:8080/_ah/admin/datastore", 
-              "description": 
-                "Your datastore viewer and console if running locally" }
+              "description": "Developer group" },
+            { "title": "App Engine Open Source", 
+              "url": "http://groups.google.com/group/google-appengine/web/google-app-engine-open-source-projects", 
+              "description": "Code!" },
+            { "title": "App Engine Console", 
+              "url": "http://appengine.google.com", 
+              "description": "Your apps" }
         ]
     },
 }
-
-# Customize the following two dictionaries to tailor this Bloog to your taste.
-# The view will preferentially use 'blog' and 'page' dictionaries.
-
-BLOG = DEFAULT_BLOG
-PAGE = DEFAULT_PAGE
