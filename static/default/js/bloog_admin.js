@@ -64,7 +64,9 @@ YAHOO.bloog.initAdmin = function() {
     YAHOO.bloog.populateDialog = function(o) {
         var article = eval('(' + o.responseText + ')')
         document.getElementById("postTitle").value = article.title;
-        document.getElementById("postTags").value = article.tags.join(', ');
+        if (article.tags) {
+            document.getElementById("postTags").value = article.tags.join(', ');
+        }
         YAHOO.bloog.editor.setEditorHTML(article.body);
         YAHOO.bloog.postDialog.render();
         YAHOO.bloog.postDialog.show();
