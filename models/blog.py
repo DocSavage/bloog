@@ -123,6 +123,17 @@ class Article(search.SearchableModel):
         'Returns thread string for next comment for this article'
         return get_thread_string(self, '')
 
+    def to_atom_xml(self):
+        """Returns a string suitable for inclusion in Atom XML feed
+        
+        Internal html property should already have XHTML entities
+        converted into unicode.  However, ampersands are valid ASCII
+        and will cause issues with XML, so reconvert ampersands to
+        valid XML entities &amp;
+        """
+        import re
+        return re.sub('&(?!amp;)', '&amp;', self.html)
+
 class Comment(models.SerializableModel):
     """Stores comments and their position in comment threads.
 
