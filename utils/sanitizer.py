@@ -102,12 +102,14 @@ def sanitize_html(html='<p>No comment</p>', encoding=None,
 
     if isinstance(html, unicode) and not encoding:
         logging.debug("Sanitizing unicode input.")
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html,  
+                            convertEntities=BeautifulSoup.XHTML_ENTITIES)
     else:
         if not encoding:
             encoding = 'latin-1'
         logging.debug("Sanitizing string input, assuming %s", encoding)
-        soup = BeautifulSoup(html.decode(encoding, 'ignore'))
+        soup = BeautifulSoup(html.decode(encoding, 'ignore'),
+                             convertEntities=BeautifulSoup.XHTML_ENTITIES)
     for comment in soup.findAll(
                     text = lambda text: isinstance(text, Comment)):
         comment.extract()
