@@ -118,7 +118,7 @@ def sanitize_html(html='<p>No comment</p>', encoding=None,
                 raise DangerousHTMLError(html)
         ok_attrs = []
         for attr, val in tag.attrs:
-            if attr == 'href' and not href_matcher.match(val):
+            if attr == 'href' and not href_matcher.match(val) and not trusted_source:
                 continue
             if attr in allow_attributes:
                 if attr in js_possible_attributes:
