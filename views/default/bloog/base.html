@@ -78,9 +78,7 @@
                 {% if not articles %}
                     {% include 'bloog_intro.html' %}
                 {% endif %}
-                    <div id="more_reading">
-                        <p>Stay tuned...</p>
-                    </div>
+                {% include 'pager.html' %}
                 </div>
                 {% endblock %}
 

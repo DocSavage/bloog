@@ -50,8 +50,11 @@
         {% if allow_comments %}
         <a class="replybtn" href="#">Add a comment...</a>
         {% else %}
-        <p>Comments are closed</p>
+            {% if article.num_comments %}
+            <p>Comments are closed</p>
+            {% endif %}
         {% endif %}
+        {% if allow_comments or article.num_comments %}
         <div id="comments" class="section">
             <h3><span id="num_comments">{{ article.num_comments }}</span> Comments</h3>
             <ol id="commentslist">
@@ -60,6 +63,7 @@
             {% endfor %}
             </ol>
         </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

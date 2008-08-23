@@ -9,6 +9,7 @@
         {% for article in articles %}
             {% include '../article_excerpt.html' %}
         {% endfor %}
+        {% include 'pager.html' %}
     {% else %}
         <div class="post">
             <div class="postMeta"><span class="date">No Matches</span></div>

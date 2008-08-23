@@ -45,9 +45,10 @@ BLOG = {
 
 PAGE = {
     "title": BLOG["title"],
+    "articles_per_page": 5,
     "navlinks": [
-        { "title": "Link", "description": "Short description", "url": "#"},
-        { "title": "Link", "description": "Short description", "url": "#"},
+        { "title": "Articles", "description": "Bits of Info", 
+          "url": "/articles"},
         { "title": "Contact", "description": "Send me a note", 
           "url": "/contact"},
     ],

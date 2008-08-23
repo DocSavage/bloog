@@ -10,19 +10,42 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-# Unused in query history -- copied from input.
+# Used once in query history.
+- kind: Article
+  properties:
+  - name: __searchable_text_index
+  - name: __searchable_text_index
+  - name: __searchable_text_index
+  - name: published
+    direction: desc
+
+# Used 8 times in query history.
+- kind: Article
+  properties:
+  - name: __searchable_text_index
+  - name: __searchable_text_index
+  - name: published
+    direction: desc
+
+# Used 5 times in query history.
 - kind: Article
   properties:
   - name: __searchable_text_index
   - name: published
     direction: desc
 
-# Used 36 times in query history.
+# Used 17 times in query history.
 - kind: Article
   properties:
   - name: article_type
   - name: published
     direction: desc
+
+# Used 23 times in query history.
+- kind: Article
+  properties:
+  - name: article_type
+  - name: title
 
 # Unused in query history -- copied from input.
 - kind: Article
@@ -31,15 +54,21 @@ indexes:
   - name: published
     direction: desc
 
-# Unused in query history -- copied from input.
+# Used 13 times in query history.
 - kind: Article
   properties:
   - name: published
     direction: desc
 
-# Used once in query history.
+# Used 7 times in query history.
 - kind: Article
   properties:
   - name: tags
   - name: published
     direction: desc
+
+# Used 4 times in query history.
+- kind: Comment
+  properties:
+  - name: article
+  - name: thread

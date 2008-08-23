@@ -48,6 +48,9 @@ acceptable_attributes = ['abbr', 'accept', 'accept-charset', 'accesskey',
   'span', 'src', 'start', 'summary', 'tabindex', 'target', 'title', 
   'type', 'usemap', 'valign', 'value', 'vspace', 'width']
 
+tags_for_trusted_source = ['object', 'param', 'embed', 'style']
+attributes_for_trusted_source = ['style', 'wmode']
+
 danger_elements = ['script', 'applet']
 js_possible_attributes = ['href', 'src']
 
@@ -63,7 +66,7 @@ class DangerousHTMLError(Exception):
 def sanitize_html(html='<p>No comment</p>', encoding=None,
                   allow_tags=[], allow_attributes=[],
                   blacklist_tags=[], blacklist_attributes=[],
-                  allow_styling=False):
+                  trusted_source=False):
     """Parses HTML and tries to sanitize it using white list.
     
     This method is a mishmash of code from Django snippets
@@ -93,8 +96,9 @@ def sanitize_html(html='<p>No comment</p>', encoding=None,
     allow_tags = [tag for tag in allow_tags if tag not in blacklist_tags]
     allow_attributes = [tag for tag in allow_attributes 
                         if tag not in blacklist_tags]
-    if allow_styling:
-        allow_attributes.append('style')
+    if trusted_source:
+        allow_attributes += attributes_for_trusted_source
+        allow_tags += tags_for_trusted_source
 
     if isinstance(html, unicode) and not encoding:
         logging.debug("Sanitizing unicode input.")

@@ -211,14 +211,23 @@ class ViewPage(object):
         output = self.render_or_get_cache(handler, template_info, params)
         handler.response.out.write(output)
 
-    def render_query(self, handler, model_name, query, params={}):
+    def render_query(self, handler, model_name, query, params={},
+                     num_limit=config.PAGE['articles_per_page'],
+                     num_offset=0):
         """
-        Handles typical rendering of queries into datastore.
+        Handles typical rendering of queries into datastore
+        with paging.
         """
-        limit = string.atoi(handler.request.get("limit") or '5')
-        offset = string.atoi(handler.request.get("offset") or '0')
-        models = query.fetch(limit, offset)
-        render_params = {model_name: models}
+        limit = string.atoi(handler.request.get("limit") or str(num_limit))
+        offset = string.atoi(handler.request.get("offset") or str(num_offset))
+        # Trick is to ask for one more than you need to see if 'next' needed.
+        models = query.fetch(limit+1, offset)
+        render_params = {model_name: models, 'limit': limit}
+        if len(models) > limit:
+            render_params.update({ 'next_offset': str(offset+limit) })
+            models.pop()
+        if offset > 0:
+            render_params.update({ 'prev_offset': str(offset-limit) })
         render_params.update(params)
 
         self.render(handler, render_params)

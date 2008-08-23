@@ -42,6 +42,7 @@ import string
 import re
 import os
 import cgi
+import urllib
 
 import logging
 
@@ -153,7 +154,7 @@ def process_article_edit(handler, permalink):
         params[key] = value[0]
     property_hash = restful.get_sent_properties(params.get,
         ['title',
-         ('body', get_sanitizer_func(handler, allow_styling=True)),
+         ('body', get_sanitizer_func(handler, trusted_source=True)),
          ('format', get_format),
          ('updated', get_datetime),
          ('tags', get_tags),
@@ -182,7 +183,7 @@ def process_article_edit(handler, permalink):
 def process_article_submission(handler, article_type):
     property_hash = restful.get_sent_properties(handler.request.get, 
         ['title',
-         ('body', get_sanitizer_func(handler, allow_styling=True)),
+         ('body', get_sanitizer_func(handler, trusted_source=True)),
          'legacy_id',
          ('format', get_format),
          ('published', get_datetime),
@@ -342,6 +343,16 @@ class RootHandler(restful.Controller):
         logging.debug("RootHandler#post")
         process_article_submission(handler=self, article_type='article')
 
+class ArticlesHandler(restful.Controller):
+    def get(self):
+        logging.debug("ArticlesHandler#get")
+        page = view.ViewPage()
+        page.render_query(
+            self, 'articles',
+            db.Query(models.blog.Article). \
+               filter('article_type =', 'article').order('title'),
+            num_limit=20)
+
 # Articles are off root url
 # TODO -- Make it DRY by combining Article/MonthHandler
 class ArticleHandler(restful.Controller):
@@ -475,11 +486,12 @@ class TagHandler(restful.Controller):
 class SearchHandler(restful.Controller):
     def get(self):
         search_term = self.request.get("s")
+        query_string = 's=' + urllib.quote_plus(search_term) + '&'
         page = view.ViewPage()
         page.render_query(
             self, 'articles', 
             models.blog.Article.all().search(search_term).order('-published'), 
-            {'search_term': search_term})
+            {'search_term': search_term, 'query_string': query_string})
 
 class YearHandler(restful.Controller):
     def get(self, year):
