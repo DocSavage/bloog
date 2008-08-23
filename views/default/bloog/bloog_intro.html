@@ -4,15 +4,14 @@
     <div class="entry">
     <p>This is the default root page for Bloog, a simple RESTful blog/homepage on Google AppEngine, and
         shows what it looks like out of the box with no posts or pages.  You can see 
-        <a href="http://billkatz-test.appspot.com">a Bloog with data here</a>.</p>
+        <a href="http://www.billkatz.com">a Bloog with data here</a>.</p>
     <p>Bloog is open sourced under the MIT License.
        Source code can be found on the <a href="http://github.com/DocSavage/bloog">GitHub Bloog repository</a>.
        Git allows you to easily customize the base app while later merging changes from the main repository
        (see <a href="http://github.com/DocSavage/bloog/wikis">here</a>).</p>
     <p>If you are old school and prefer a tarball of code, 
         <a href="http://github.com/docsavage/bloog/tarball/master">click here</a>.</p>
-    <p>Bloog was created to experiment with blog ideas on Google AppEngine while allowing migration from a legacy blog. 
-        These goals shape the feature set, which includes:</p>
+    <p>Bloog includes the following features:</p>
     <ul>
         <li>A resource-oriented architecture, as described in the great book
             <a href="http://www.amazon.com/exec/obidos/tg/detail/-/0596529260/writertopia-20">RESTful Web Services</a></li>
@@ -24,18 +23,28 @@
             stored with the blog entries.  (http://foo.com/node/4 is a typical Drupal url.)</li>
         <li>A <a href="http://developer.yahoo.com/yui">Yahoo UI</a> 
             AJAX front-end for posting and managing entries in a RESTful way.</li>
+        <li>Easy code syntax highlighting for a number of programming languages.</li>
+        <li>Sanitization of incoming HTML via Beautiful Soup parsing.</li>
+        <li>Some modularization of look-and-feel so you can more easily
+            modify the theme without yanking too much code apart (I hope).</li>
         <li>Dynamic per-article sidebars. (in progress)</li>
     </ul>
-    <p>From an AppEngine developer's perspective, you may find the source code interesting to examine due to things like:</p>
+    <p>From an AppEngine developer's perspective, you may find the source code a reasonable starting framework
+       on which you can build your own application.  Points of coding interest include:</p>
     <ul>
-        <li>RESTful design using webapp.</li>
+        <li>RESTful design using webapp.  Accepts http verbs via overloaded POSTs 
+            using _method or X-HTTP-Method-Override headers.  Simple urls provide
+            a uniform interface with standard verbs.</li>
         <li>Convention-over-configuration in organizing controller and view files.</li>
         <li>Authorization using python decorators and built-in Google authentication.</li>
         <li>Caching using the memcached API and also some timing caching using global variables.</li>
+        <li>JSON serialization for db.Model.</li>
+        <li>Sharded counters to decrease write contentions.</li>
+        <li>Integrated python shell using one of Google's example apps.
+            This provides a command-line console even when running on Google's App Engine cloud.</li>
         <li>Serialization of a python object into a datastore blob.</li>
-        <li>An example of full-text searching using the slightly documented appengine.ext.search module.
-            (This works but was commented out due to a weird (Google?) bug when uploading large posts.  Perhaps a timeout?
-             It works fine for smaller posts on Google hosts and all posts locally.)</li>
+        <li>An example of full-text searching using an extended version of the appengine.ext.search module.
+            Extensions include ways of limiting indexed properties.</li>
     </ul>
     <p>If your login has administrative permission for this Bloog, you can add articles after 
         <a href="{{ login_url }}">login</a>.</p>
