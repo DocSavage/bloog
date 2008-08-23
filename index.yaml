@@ -14,23 +14,6 @@ indexes:
 - kind: Article
   properties:
   - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: published
-    direction: desc
-
-# Used 8 times in query history.
-- kind: Article
-  properties:
-  - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: published
-    direction: desc
-
-# Used 5 times in query history.
-- kind: Article
-  properties:
-  - name: __searchable_text_index
   - name: published
     direction: desc
 

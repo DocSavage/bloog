@@ -286,8 +286,11 @@ def render_article(handler, article):
     if article:
         # Check if client is requesting javascript and
         # return json if javascript is #1 in Accept header.
-        logging.debug("article Accept: %s", handler.request.headers['Accept'])
-        accept_list = handler.request.headers['Accept']
+        try:
+            accept_list = handler.request.headers['Accept']
+        except KeyError:
+            logging.error("Had no accept header: %s", handler.request.headers)
+            accept_list = None
         if accept_list and accept_list.split(',')[0] == 'application/json':
             handler.response.headers['Content-Type'] = 'application/json'
             handler.response.out.write(article.to_json())
