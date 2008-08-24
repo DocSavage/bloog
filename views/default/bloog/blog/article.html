@@ -87,7 +87,8 @@ dp.SyntaxHighlighter.HighlightAll('code');
 
 {% endblock %}
 
-{% if two_columns %}
 {% block third_column %}
-{% endblock %}
+{% if not two_columns %}
+{% include 'ads.html' %}
 {% endif %}
+{% endblock %}
