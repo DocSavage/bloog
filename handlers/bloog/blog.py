@@ -72,7 +72,7 @@ permalink_funcs = {
 #  using a regex's matched string.
 def legacy_id_mapping(path, legacy_program):
     if legacy_program and legacy_program == 'Drupal':
-        url_match = re.match('node/(\d+)', path)
+        url_match = re.match('node/(\d+)/?$', path)
         if url_match:
             return db.Query(models.blog.Article). \
                 filter('legacy_id =', url_match.group(1)). \
@@ -488,13 +488,22 @@ class TagHandler(restful.Controller):
 
 class SearchHandler(restful.Controller):
     def get(self):
+        from google.appengine.api import datastore_errors
         search_term = self.request.get("s")
         query_string = 's=' + urllib.quote_plus(search_term) + '&'
         page = view.ViewPage()
-        page.render_query(
-            self, 'articles', 
-            models.blog.Article.all().search(search_term).order('-published'), 
-            {'search_term': search_term, 'query_string': query_string})
+        try:
+            page.render_query(
+                self, 'articles', 
+                models.blog.Article.all().search(search_term). \
+                    order('-published'), 
+                {'search_term': search_term, 'query_string': query_string})
+        except datastore_errors.NeedIndexError:
+            page.render(self, {'search_term': search_term,
+                               'search_error_message': """
+                               Sorry, full-text searches are currently limited
+                               to single words until a later AppEngine update.
+                               """})
 
 class YearHandler(restful.Controller):
     def get(self, year):
