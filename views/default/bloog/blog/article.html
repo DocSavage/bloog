@@ -19,8 +19,10 @@
             <span class="articlebtn"><a id="editbtn" href="#">Edit</a></span>
             <span class="articlebtn"><a id="deletebtn" href="#">Delete</a></span>
             {% endif %}
+            {% if article.num_comments %}
+            <span class="comments"><a href="/{{ article.permalink }}#comments">{{ article.num_comments }}</a></span>
+            {% endif %}
             <span class="date">{{ article.published.date }}</span>
-            <span class="comments"><a href="/{{ article.permalink }}#comments">{{ article.num_comments|default:"0" }}</a></span>
         </div>
         <h2><a id="blogtitle" href="/{{ article.permalink }}" title="{{ article.title }}">{{ article.title }}</a></h2>
         <div id="blogbody" class="entry">
