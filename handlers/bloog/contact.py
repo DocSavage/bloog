@@ -31,6 +31,8 @@ import logging
 import string
 import time
 
+from google.appengine.api import users
+
 from handlers import restful
 import view
 import config
@@ -39,9 +41,12 @@ RANDOM_TOKEN = '08yzek30krn4l' + config.BLOG['root_url']
 
 class ContactHandler(restful.Controller):
     def get(self):
+        user = users.get_current_user()
         # Don't use cache since we want to get current time for each post.
         view.ViewPage(cache_time=0). \
-             render(self, {'token': RANDOM_TOKEN, 'curtime': time.time()})
+             render(self, {'email': user.email() if user else 'Required',
+                           'nickname': user.nickname() if user else '',
+                           'token': RANDOM_TOKEN, 'curtime': time.time()})
 
     def post(self):
         from google.appengine.api import mail
@@ -52,14 +57,16 @@ class ContactHandler(restful.Controller):
                           "was less than 2 seconds.")
             self.error(403)
 
-        reply_to = self.request.get('author') + ' <' + \
-                   self.request.get('email') + '>'
+        user = users.get_current_user()
+        sender = user.email() if user else config.BLOG['email']
+        reply_to = self.request.get('email') or \
+                   (user_email() if user else 'unknown@foo.com')
         mail.send_mail(
-            sender = config.BLOG['email'],
-            reply_to = reply_to,
+            sender = sender,
+            reply_to = self.request.get('author') + '<' + reply_to + '>',
             to = config.BLOG['email'],
-            subject = self.request.get('subject'),
-            body = self.request.get('message')
+            subject = self.request.get('subject') or 'No Subject Given',
+            body = self.request.get('message') or 'No Message Given'
         )
 
         view.ViewPage(cache_time=36000).render(self)

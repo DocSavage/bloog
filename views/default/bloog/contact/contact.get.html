@@ -14,9 +14,9 @@
         </div>
         {% else %}
         <form id="htmlform" action="{{ current_url }}" method="post">
-            <p><input type="text" id="author" name="author" size="22" tabindex="1" />
+            <p><input type="text" id="author" name="author" size="22" tabindex="1" value="{{ nickname }}"/>
                 <label for="author"><small>Name</small></label></p>
-            <p><input type="text" id="email" name="email" size="22" tabindex="2" />
+            <p><input type="text" id="email" name="email" size="22" tabindex="2" value="{{ email }}"/>
                 <label for="email"><small>Email</small></label></p>
             <p><input type="text" id="subject" name="subject" size="22" tabindex="3" />
                 <label for="subject"><small>Subject</small></label></p>

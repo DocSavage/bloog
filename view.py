@@ -183,7 +183,10 @@ class ViewPage(object):
             stateful_flags = str(users.get_current_user() != None) + \
                              str(users.is_current_user_admin())
             key = handler.request.url + stateful_flags
-            data = memcache.get(key)
+            try:
+                data = memcache.get(key)
+            except ValueError:
+                data = None
             if data is not None:
                 logging.debug("Using cache for %s", template_info['file'])
                 return data
