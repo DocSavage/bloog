@@ -174,7 +174,7 @@ class ViewPage(object):
            and if so, return it."""
         user = users.get_current_user()
         key = handler.request.url
-        if self.cache_time:
+        if self.cache_time and not user:
             # See if there's a cache within time.
             # The cache key suggests a problem with the url <-> function 
             #  mapping, because a significant advantage of RESTful design 
@@ -182,25 +182,16 @@ class ViewPage(object):
             #  resource.  If we have to include states like "user?" and 
             #  "admin?", then it suggests these flags should be in url.               
             # TODO - Think about the above with respect to caching.
-            if not user:
-                try:
-                    data = memcache.get(key)
-                except ValueError:
-                    data = None
-                if data is not None:
-                    logging.debug("Using cache for %s", template_info['file'])
-                    return data
-                else:
-                    logging.debug("Memcached miss using key: %s", key)
+            try:
+                data = memcache.get(key)
+            except ValueError:
+                data = None
+            if data is not None:
+                return data
 
         output = self.full_render(handler, template_info, template_params)
-        if self.cache_time:
-            logging.debug("Adding %s to memcached (key %s) for %d sec",
-                          template_info['file'], key, self.cache_time)
+        if self.cache_time and not user:
             memcache.add(key, output, self.cache_time)
-        else:
-            logging.debug("Ignoring caching since cache_time set to %d",
-                          self.cache_time)
         return output
 
     def render(self, handler, params={}):
