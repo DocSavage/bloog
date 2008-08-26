@@ -25,6 +25,7 @@
 YAHOO.bloog.initComments = function() {
 
     var showRTE = function(e) {
+        YAHOO.util.Dom.removeClass('commentDialog', 'initialHide');
         YAHOO.bloog.commentEditor.setEditorHTML('<p>Comment goes here</p>');
         YAHOO.bloog.commentDialog.render();
         YAHOO.bloog.commentDialog.show();
