@@ -172,6 +172,8 @@ class ViewPage(object):
     def render_or_get_cache(self, handler, template_info, template_params={}):
         """Checks if there's a non-stale cached version of this view, 
            and if so, return it."""
+        user = users.get_current_user()
+        key = handler.request.url
         if self.cache_time:
             # See if there's a cache within time.
             # The cache key suggests a problem with the url <-> function 
@@ -180,19 +182,16 @@ class ViewPage(object):
             #  resource.  If we have to include states like "user?" and 
             #  "admin?", then it suggests these flags should be in url.               
             # TODO - Think about the above with respect to caching.
-            user = users.get_current_user()
-            if user:
-                return None
-            key = handler.request.url
-            try:
-                data = memcache.get(key)
-            except ValueError:
-                data = None
-            if data is not None:
-                logging.debug("Using cache for %s", template_info['file'])
-                return data
-            else:
-                logging.debug("Memcached miss using key: %s", key)
+            if not user:
+                try:
+                    data = memcache.get(key)
+                except ValueError:
+                    data = None
+                if data is not None:
+                    logging.debug("Using cache for %s", template_info['file'])
+                    return data
+                else:
+                    logging.debug("Memcached miss using key: %s", key)
 
         output = self.full_render(handler, template_info, template_params)
         if self.cache_time:
