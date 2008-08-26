@@ -26,7 +26,9 @@ YAHOO.bloog.initComments = function() {
 
     var showRTE = function(e) {
         YAHOO.bloog.commentEditor.setEditorHTML('<p>Comment goes here</p>');
+        YAHOO.bloog.commentDialog.render();
         YAHOO.bloog.commentDialog.show();
+        YAHOO.bloog.commentEditor.show();
     }
 
     var handleSuccess = function(o) {
@@ -42,6 +44,7 @@ YAHOO.bloog.initComments = function() {
         }
         var num_comments = Number(document.getElementById('num_comments').innerHTML) + 1;
         Ojay('#num_comments').setContent(String(num_comments));
+        YAHOO.bloog.commentEditor.hide();
         YAHOO.bloog.commentDialog.hide();
     }
     var handleFailure = function(o) {
@@ -96,7 +99,6 @@ YAHOO.bloog.initComments = function() {
     }
     YAHOO.bloog.commentDialog.callback = { success: handleDialogSuccess, 
                                            failure: YAHOO.bloog.handleFailure };
-    YAHOO.bloog.commentDialog.render();
 
     YAHOO.bloog.commentEditor = new YAHOO.widget.SimpleEditor(
         'commentBody', {
@@ -132,6 +134,8 @@ YAHOO.bloog.initComments = function() {
             }
         });
     YAHOO.bloog.commentEditor.render();
+    YAHOO.bloog.commentDialog.showEvent.subscribe(YAHOO.bloog.commentEditor.show, YAHOO.bloog.commentEditor, true);
+    YAHOO.bloog.commentDialog.hideEvent.subscribe(YAHOO.bloog.commentEditor.hide, YAHOO.bloog.commentEditor, true);
 
     // Use event bubbling so we don't have to attach listeners to each reply
     Ojay('div#comments_wrapper').on('click', Ojay.delegateEvent({
