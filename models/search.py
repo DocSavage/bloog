@@ -101,7 +101,7 @@ class SearchableEntity(datastore.Entity):
 
   _FULL_TEXT_INDEX_PROPERTY = '__searchable_text_index'
 
-  _FULL_TEXT_MIN_LENGTH = 3
+  _FULL_TEXT_MIN_LENGTH = 4
 
   _FULL_TEXT_STOP_WORDS = frozenset([
    'a', 'about', 'according', 'accordingly', 'affected', 'affecting', 'after',

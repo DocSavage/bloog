@@ -180,9 +180,10 @@ class ViewPage(object):
             #  resource.  If we have to include states like "user?" and 
             #  "admin?", then it suggests these flags should be in url.               
             # TODO - Think about the above with respect to caching.
-            stateful_flags = str(users.get_current_user() != None) + \
-                             str(users.is_current_user_admin())
-            key = handler.request.url + stateful_flags
+            user = users.get_current_user()
+            if user:
+                return None
+            key = handler.request.url
             try:
                 data = memcache.get(key)
             except ValueError:
