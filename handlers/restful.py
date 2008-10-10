@@ -127,3 +127,6 @@ def methods_via_query_allowed(handler_method):
 class Controller(webapp.RequestHandler):
     def get(self, *params):
         self.redirect("/403.html")
+
+    def head(self, *params):
+        pass
