@@ -80,6 +80,9 @@ with ACSID:
 drupal_uploader.py 'ACSID=AJXUWfE-aefkae...'
 
 Options:
+-D, --dbtype     = database type (default is 'mysql')
+-t, --prefix     = table prefix (default is '')
+-b, --blogtype   = type of blog to import from (default is 'drupal')
 -r, --root         sets authorization cookie for local dev admin
 -d, --dbhostname = hostname of MySQL server (default is 'localhost')
 -p, --dbport     = port of MySQL server (default is '3306')
@@ -253,6 +256,15 @@ class BlogConverter(object):
                 print "Posting comment '" + row[0] + "' to", \
                       comment_posting_url
                 self.webserver.post(comment_posting_url, comment)
+
+        # create_python_routing from url_alias table
+        f = open('legacy_aliases.py', 'w')
+        print >>f, "redirects = {"
+        for src, dest in self.get_redirects():
+            print >>f, "    '%s': '%s'," % \
+                       (src.lower(), dest)
+        print >>f, "}"
+        f.close()
     
     def get_articles(self):
         """Returns an iterable of blog articles to be imported."""
@@ -265,6 +277,92 @@ class BlogConverter(object):
     def get_article_comments(self, article):
         """Returns an iterable of comments associated with an article."""
         return
+
+    def get_redirects(self):
+        """Returns an iterable of (src, dest) redirect tuples."""
+        return
+
+
+class SerendipityConverter(BlogConverter):
+    def get_articles(self):
+        self.cursor.execute("SELECT id, title, timestamp, last_modified, body"
+                            " FROM %sentries WHERE NOT isdraft"
+                            % (self.table_prefix,))
+        rows = self.cursor.fetchall()
+        for row in rows:
+            article = {}
+            article['legacy_id'] = row[0]
+            article['title'] = force_singleline(row[1])
+            article['format'] = None
+            article['body'] = row[4]
+            article['html'] = article['body']
+            article['format'] = 'html'
+            published = datetime.datetime.fromtimestamp(row[2])
+            last_modified = datetime.datetime.fromtimestamp(row[3])
+            article['published'] = str(published)
+            article['updated'] = str(last_modified)
+            article['post_url'] = '/%s/%s/' % (published.year, published.month)
+            yield article
+            if num_articles and len(articles) >= num_articles:
+                break
+    
+    def get_article_tags(self, article):
+        article_tags = set()
+        self.cursor.execute("SELECT categoryid FROM %sentrycat"
+                            " WHERE entryid = %s"
+                            % (self.table_prefix, article['legacy_id']))
+        rows = self.cursor.fetchall()
+        for row in rows:
+            tag = self.tags.get(row[0], None)
+            while tag:
+              article_tags.add(tag['name'])
+              tag = self.tags.get(tag['parent'], None)
+        article['tags'] = ','.join(tag_names)
+
+    def get_article_comments(self, article):
+        self.cursor.execute("SELECT entry_id, id, parent_id, title, body, "
+                            "timestamp, author, email, url FROM %scomments "
+                            "WHERE entry_id = %s ORDER BY entry_id, parent_id"
+                            % (self.table_prefix, article['legacy_id']))
+        rows = self.cursor.fetchall()
+        current_entry_id = None
+        comments = {'0': { 'children': []}}
+        for row in rows:
+            if current_entry_id != row[0]:
+                current_entry_id = row[0]
+                stack = [((x[1],), x) for x in comments['0']['children']]
+                while stack:
+                    thread, entry = stack.pop()
+                    yield {
+                        'title': entry[3],
+                        'body': entry[4],
+                        'published': str(datetime.datetime.fromtimestamp(row[5])),
+                        'thread': '.'.join('%03d' % x for x in thread),
+                        'name': entry[6],
+                        'email': entry[7],
+                        'homepage': entry[8],
+                    }
+                    stack.extend((thread + (entry[1],), x)
+                                 for x in comments[entry[1]])
+            comments[row[1]] = {'data': row, 'children': []}
+            if row[2] > 0:
+                comments[row[2]]['children'].append(row)
+            
+
+    def go(self, num_articles=None):
+        self.cursor.execute("SELECT categoryid, parentid, category_name"
+                            " FROM %scategory"
+                            % (self.table_prefix,))
+        rows = self.cursor.fetchall()
+        self.tags = {}
+        for row in rows:
+            self.tags[row[0]] = {
+                'parent': row[1],
+                'name': row[2],
+            }
+
+        super(DrupalConverter, self).go(num_articles)
+
 
 class DrupalConverter(BlogConverter):
     """
@@ -358,8 +456,8 @@ class DrupalConverter(BlogConverter):
             tid = row[0]
             # Walk up the term tree and add all tags along path to root
             while tid:
-                tag_names.update([tags[tid]['name']])
-                tid = tags[tid]['parent']
+                tag_names.update([self.tags[tid]['name']])
+                tid = self.tags[tid]['parent']
         article['tags'] = ','.join(tag_names)
         return article
     
@@ -383,48 +481,51 @@ class DrupalConverter(BlogConverter):
                 'homepage': force_singleline(row[6])
             }
             yield comment
-
-    def go(self, num_articles=None):
-        # Get all the term (tag) data and the hierarchy pattern
-        self.cursor.execute("SELECT tid, name FROM term_data")
-        rows = self.cursor.fetchall()
-        tags = {}
-        for row in rows:
-            tid = row[0]
-            tags[tid] = {'name': row[1]}
-        self.cursor.execute("SELECT tid, parent FROM term_hierarchy")
-        rows = self.cursor.fetchall()
-        for row in rows:
-            tags[row[0]]['parent'] = row[1]
-
-        super(DrupalConverter, self).go(num_articles)
-            
-        # create_python_routing from url_alias table
+    
+    def get_redirects(self):
         self.cursor.execute("SELECT * FROM url_alias")
         rows = self.cursor.fetchall()
-        f = open('legacy_aliases.py', 'w')
-        print >>f, "redirects = {"
         for row in rows:
             nmatch = re.match('node/(\d+)', row[1])
             if nmatch:
                 legacy_id = string.atoi(nmatch.group(1))
                 if legacy_id in self.redirect:
-                    print >>f, "    '%s': '%s'," % \
-                               (row[2], self.redirect[legacy_id])
-        print >>f, "}"
-        f.close()
+                    yield (row[2], self.redirect[legacy_id])
+
+    def go(self, num_articles=None):
+        # Get all the term (tag) data and the hierarchy pattern
+        self.cursor.execute("SELECT tid, name FROM term_data")
+        rows = self.cursor.fetchall()
+        self.tags = {}
+        for row in rows:
+            tid = row[0]
+            self.tags[tid] = {'name': row[1]}
+        self.cursor.execute("SELECT tid, parent FROM term_hierarchy")
+        rows = self.cursor.fetchall()
+        for row in rows:
+            self.tags[row[0]]['parent'] = row[1]
+
+        super(DrupalConverter, self).go(num_articles)
+
+
+blog_types = {
+  'serendipity': SerendipityConverter,
+  'drupal': DrupalConverter,
+}
+
 
 def main(argv):
     try:
         try:
-            opts, args = getopt.gnu_getopt(argv, 'hrd:p:u:n:l:a:vD:t:',
+            opts, args = getopt.gnu_getopt(argv, 'hrd:p:u:n:l:a:vD:t:b:',
                                            ["help", "root", "dbhostname=",
                                             "dbport=", "dbuserpwd=", "dbname=",
                                             "url=", "articles=", "dbtype=",
-                                            "prefix="])
+                                            "prefix=", "blogtype="])
         except getopt.error, msg:
             raise UsageError(msg)
 
+        blogtype = 'drupal'
         dbtype = 'mysql'
         table_prefix = ''
         dbhostname = 'localhost'
@@ -449,6 +550,8 @@ def main(argv):
                 dbtype = value
             if option in ("-t", "--prefix"):
                 table_prefix = value
+            if option in ("-b", "--blogtype"):
+                blogtype = value
             if option in ("-d", "--dbhostname"):
                 dbhostname = value
             if option in ("-p", "--dbport"):
@@ -487,10 +590,10 @@ def main(argv):
             print dbuser, dbpasswd, dbhostname, dbport, dbname
             conn = db_types[dbtype](dbuser, dbpasswd, dbhostname, dbport,
                                     dbname)
-            converter = DrupalConverter(auth_cookie=auth_cookie,
-                                        conn=conn,
-                                        app_url=app_url,
-                                        table_prefix=table_prefix)
+            converter = blog_types[blogtype](auth_cookie=auth_cookie,
+                                             conn=conn,
+                                             app_url=app_url,
+                                             table_prefix=table_prefix)
             converter.go(num_articles)
             converter.close()
     
