@@ -61,8 +61,6 @@ import urlparse
 import socket
 import string
 
-import MySQLdb
-
 from utils.external import textile
 
 help_message = """
@@ -96,6 +94,33 @@ DB_ENCODING = 'latin-1'
 NEWLINE_CHARS = [ord(x) for x in ['\n', '\t', '\r']]
 OK_CHARS = range(32,126) + [ord(x) for x in ['\n', '\t', '\r']]
 OK_TITLE = range(32,126)
+
+db_types = {}
+try:
+    import MySQLdb
+    def mysql_connect(dbuser, dbpasswd, dbhostname, dbport, dbname):
+        if not dbport:
+          dbport = 3306
+        return MySQLdb.connect(user=dbuser,
+                               passwd=dbpasswd,
+                               host=dbhostname,
+                               port=dbport,
+                               db=dbname)
+    db_types['mysql'] = mysql_connect
+except ImportError:
+    pass
+
+try:
+    import psycopg2
+    def postgres_connect(dbuser, dbpasswd, dbhostname, dbport, dbname):
+        if not dbport:
+            dbport = 5432
+        return psycopg2.connect(
+            "user='%s' password='%s' host='%s' port='%s' dbname='%s'" %
+            (dbuser, dbpasswd, dbhostname, dbport, dbname))
+    db_types['postgres'] = postgres_connect
+except ImportError:
+    pass
 
 def clean_multiline(raw_string):
     return ''.join([x for x in raw_string if ord(x) in OK_CHARS])
@@ -193,8 +218,55 @@ class HttpRESTClient(object):
                                '%s, %s, %s' % (status, reason, content))
         return content
 
+class BlogConverter(object):
+    def __init__(self, auth_cookie, conn, app_url, table_prefix=''):
+        self.webserver = HttpRESTClient(auth_cookie)
+        self.app_url = app_url
+        self.table_prefix = table_prefix
+        self.conn = conn
+        self.cursor = self.conn.cursor()
+    
+    def close(self):
+        self.cursor.close()
+        self.conn.close()
+    
+    def go(self, num_articles = None):
+        # Get all articles
+        self.redirect = {}    # Keys are legacy IDs and maps to permalink
 
-class DrupalConverter(object):
+        for article in self.get_articles():
+            article = self.get_article_tags(article)
+
+            # Store the article by posting to either root (if "page") 
+            # or blog month (if "blog" entry)
+            print('Posting article with title "%s" to %s' % 
+                  (article['title'], article['post_url']))
+            entry_permalink = self.webserver.post(
+                                self.app_url + article['post_url'],
+                                article)
+            if article['legacy_id']:
+                self.redirect[article['legacy_id']] = entry_permalink
+            print('Bloog successfully stored at %s' % (entry_permalink))
+
+            comment_posting_url = self.app_url + entry_permalink
+            for comment in self.get_article_comments(article):
+                print "Posting comment '" + row[0] + "' to", \
+                      comment_posting_url
+                self.webserver.post(comment_posting_url, comment)
+    
+    def get_articles(self):
+        """Returns an iterable of blog articles to be imported."""
+        raise NotImplementedError()
+    
+    def get_article_tags(self, article):
+        """Annotates an article with tags."""
+        return
+    
+    def get_article_comments(self, article):
+        """Returns an iterable of comments associated with an article."""
+        return
+
+class DrupalConverter(BlogConverter):
     """
     Makes remote connection to MySQL database for Drupal 4.* blog.
     Uses data in the following tables to initialize a Bloog app:
@@ -214,23 +286,6 @@ class DrupalConverter(object):
         "html",         # full html
         "textile"
     ]
-
-    def __init__(self, auth_cookie, dbuser, dbpasswd, dbhostname, 
-                dbport, dbname, app_url):
-        self.webserver = HttpRESTClient(auth_cookie)
-        self.app_url = app_url
-
-        # Open DB server connection and get cursor to database
-        self.conn = MySQLdb.connect(user = dbuser,
-                                    passwd = dbpasswd,
-                                    host = dbhostname,
-                                    port = dbport,
-                                    db = dbname)
-        self.cursor = self.conn.cursor()
-
-    def close(self):
-        self.cursor.close()
-        self.conn.close()
 
     def get_html(self, raw_body, markup_type):
         """ Convert various Drupal formats to html """
@@ -253,23 +308,8 @@ class DrupalConverter(object):
         else:
             body = raw_body
         return body
-
-    def go(self, num_articles=None):
-        # Get all the term (tag) data and the hierarchy pattern
-        self.cursor.execute("SELECT tid, name FROM term_data")
-        rows = self.cursor.fetchall()
-        tags = {}
-        for row in rows:
-            tid = row[0]
-            tags[tid] = {'name': row[1]}
-        self.cursor.execute("SELECT tid, parent FROM term_hierarchy")
-        rows = self.cursor.fetchall()
-        for row in rows:
-            tags[row[0]]['parent'] = row[1]
-
-        # Get all articles
-        redirect = {}    # Keys are legacy IDs and maps to permalink
-        articles = []
+    
+    def get_articles(self):
         self.cursor.execute("SELECT * FROM node")
         rows = self.cursor.fetchall()
         for row in rows:
@@ -299,62 +339,65 @@ class DrupalConverter(object):
                                               '/' + str(published.month) + "/"
                     else:
                         article['post_url'] = '/'
-                    articles.append(article)
+                    yield article
                     if num_articles and len(articles) >= num_articles:
                         break
                 else:
                     print "Rejected article with title (", \
                           article['title'], ") because bad format."
+    
+    def get_article_tags(self, article):
+        # Add tags to each article by looking at term_node table
+        sql = "SELECT d.tid FROM term_data d, term_node n " \
+              "WHERE d.tid = n.tid AND n.nid = " + \
+              str(article['legacy_id'])
+        self.cursor.execute(sql)
+        rows = self.cursor.fetchall()
+        tag_names = set()
+        for row in rows:
+            tid = row[0]
+            # Walk up the term tree and add all tags along path to root
+            while tid:
+                tag_names.update([tags[tid]['name']])
+                tid = tags[tid]['parent']
+        article['tags'] = ','.join(tag_names)
+        return article
+    
+    def get_article_comments(self, article):
+        # Store comments associated with the article
+        sql = "SELECT subject, comment, timestamp, thread, name, mail, " \
+              "homepage FROM comments WHERE nid = " + \
+              str(article['legacy_id'])
+        self.cursor.execute(sql)
+        rows = self.cursor.fetchall()
+        for row in rows:
+            # Store comment associated with article by POST to 
+            # article entry url
+            comment = {
+                'title': force_singleline(row[0]),
+                'body': fix_string(row[1]),
+                'published': str(datetime.datetime.fromtimestamp(row[2])),
+                'thread': fix_thread_string(force_singleline(row[3])),
+                'name': force_singleline(row[4]),
+                'email': force_singleline(row[5]),
+                'homepage': force_singleline(row[6])
+            }
+            yield comment
 
-        for article in articles:
-            # Add tags to each article by looking at term_node table
-            sql = "SELECT d.tid FROM term_data d, term_node n " \
-                  "WHERE d.tid = n.tid AND n.nid = " + \
-                  str(article['legacy_id'])
-            self.cursor.execute(sql)
-            rows = self.cursor.fetchall()
-            tag_names = set()
-            for row in rows:
-                tid = row[0]
-                # Walk up the term tree and add all tags along path to root
-                while tid:
-                    tag_names.update([tags[tid]['name']])
-                    tid = tags[tid]['parent']
-            article['tags'] = ','.join(tag_names)
+    def go(self, num_articles=None):
+        # Get all the term (tag) data and the hierarchy pattern
+        self.cursor.execute("SELECT tid, name FROM term_data")
+        rows = self.cursor.fetchall()
+        tags = {}
+        for row in rows:
+            tid = row[0]
+            tags[tid] = {'name': row[1]}
+        self.cursor.execute("SELECT tid, parent FROM term_hierarchy")
+        rows = self.cursor.fetchall()
+        for row in rows:
+            tags[row[0]]['parent'] = row[1]
 
-            # Store the article by posting to either root (if "page") 
-            # or blog month (if "blog" entry)
-            print('Posting article with title "%s" to %s' % 
-                  (article['title'], article['post_url']))
-            entry_permalink = self.webserver.post(
-                                self.app_url + article['post_url'],
-                                article)
-            if article['legacy_id']:
-                redirect[article['legacy_id']] = entry_permalink
-            print('Bloog successfully stored at %s' % (entry_permalink))
-
-            # Store comments associated with the article
-            comment_posting_url = self.app_url + entry_permalink
-            sql = "SELECT subject, comment, timestamp, thread, name, mail, " \
-                  "homepage FROM comments WHERE nid = " + \
-                  str(article['legacy_id'])
-            self.cursor.execute(sql)
-            rows = self.cursor.fetchall()
-            for row in rows:
-                # Store comment associated with article by POST to 
-                # article entry url
-                comment = {
-                    'title': force_singleline(row[0]),
-                    'body': fix_string(row[1]),
-                    'published': str(datetime.datetime.fromtimestamp(row[2])),
-                    'thread': fix_thread_string(force_singleline(row[3])),
-                    'name': force_singleline(row[4]),
-                    'email': force_singleline(row[5]),
-                    'homepage': force_singleline(row[6])
-                }
-                print "Posting comment '" + row[0] + "' to", \
-                      comment_posting_url
-                self.webserver.post(comment_posting_url, comment)
+        super(DrupalConverter, self).go(num_articles)
             
         # create_python_routing from url_alias table
         self.cursor.execute("SELECT * FROM url_alias")
@@ -365,24 +408,27 @@ class DrupalConverter(object):
             nmatch = re.match('node/(\d+)', row[1])
             if nmatch:
                 legacy_id = string.atoi(nmatch.group(1))
-                if legacy_id in redirect:
+                if legacy_id in self.redirect:
                     print >>f, "    '%s': '%s'," % \
-                               (row[2], redirect[legacy_id])
+                               (row[2], self.redirect[legacy_id])
         print >>f, "}"
         f.close()
 
 def main(argv):
     try:
         try:
-            opts, args = getopt.gnu_getopt(argv, 'hrd:p:u:n:l:a:v',
+            opts, args = getopt.gnu_getopt(argv, 'hrd:p:u:n:l:a:vD:t:',
                                            ["help", "root", "dbhostname=",
                                             "dbport=", "dbuserpwd=", "dbname=",
-                                            "url=", "articles="])
+                                            "url=", "articles=", "dbtype=",
+                                            "prefix="])
         except getopt.error, msg:
             raise UsageError(msg)
 
+        dbtype = 'mysql'
+        table_prefix = ''
         dbhostname = 'localhost'
-        dbport = 3306
+        dbport = None
         dbname = 'drupal'
         dbuser = ''
         dbpasswd = ''
@@ -399,6 +445,10 @@ def main(argv):
                 raise UsageError(help_message)
             if option in ("-r", "--root"):
                 local_admin = 'dev_appserver_login="root@example.com:True"'
+            if option in ("-D", "--dbtype"):
+                dbtype = value
+            if option in ("-t", "--prefix"):
+                table_prefix = value
             if option in ("-d", "--dbhostname"):
                 dbhostname = value
             if option in ("-p", "--dbport"):
@@ -435,13 +485,12 @@ def main(argv):
             #passwd = getpass.getpass("Password: ")
 
             print dbuser, dbpasswd, dbhostname, dbport, dbname
+            conn = db_types[dbtype](dbuser, dbpasswd, dbhostname, dbport,
+                                    dbname)
             converter = DrupalConverter(auth_cookie=auth_cookie,
-                                        dbuser=dbuser,
-                                        dbpasswd=dbpasswd,
-                                        dbhostname=dbhostname,
-                                        dbport=dbport,
-                                        dbname=dbname,
-                                        app_url=app_url)
+                                        conn=conn,
+                                        app_url=app_url,
+                                        table_prefix=table_prefix)
             converter.go(num_articles)
             converter.close()
     
