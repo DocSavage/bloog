@@ -368,14 +368,15 @@ class ArticleHandler(restful.Controller):
                 self.redirect(legacy_aliases.redirects[alias])
                 return
 
-        # This lets you map arbitrary URL patterns like /node/3
-        #  to article properties, e.g. 3 -> legacy_id property
-        article = legacy_id_mapping(path, config.BLOG["legacy_blog_software"])
-
         # Check undated pages
+        article = db.Query(models.blog.Article). \
+                     filter('permalink =', path).get()
+
         if not article:
-            article = db.Query(models.blog.Article). \
-                         filter('permalink =', path).get()
+            # This lets you map arbitrary URL patterns like /node/3
+            #  to article properties, e.g. 3 -> legacy_id property
+            article = legacy_id_mapping(path,
+                                        config.BLOG["legacy_blog_software"])
         render_article(self, article)
 
     @restful.methods_via_query_allowed    
