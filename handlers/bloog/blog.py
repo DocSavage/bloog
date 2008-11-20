@@ -71,12 +71,18 @@ permalink_funcs = {
 # We allow a mapping from some old url pattern to the current query 
 #  using a regex's matched string.
 def legacy_id_mapping(path, legacy_program):
-    if legacy_program and legacy_program == 'Drupal':
-        url_match = re.match('node/(\d+)/?$', path)
-        if url_match:
-            return db.Query(models.blog.Article). \
-                filter('legacy_id =', url_match.group(1)). \
-                get()
+    if legacy_program:
+        if legacy_program == 'Drupal':
+            url_match = re.match('node/(\d+)/?$', path)
+            if url_match:
+                return db.Query(models.blog.Article). \
+                    filter('legacy_id =', url_match.group(1)). \
+                    get()
+        elif legacy_program == 'Serendipity':
+            url_match = re.match('(\d+)-.*\.html$', path)
+            if url_match:
+                return db.Query(models.blog.Article). \
+                    filter('legacy_id =', url_match.group(1)).get()
     return None
 
 # Module methods to handle incoming data
