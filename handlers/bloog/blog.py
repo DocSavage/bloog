@@ -79,7 +79,7 @@ def legacy_id_mapping(path, legacy_program):
                     filter('legacy_id =', url_match.group(1)). \
                     get()
         elif legacy_program == 'Serendipity':
-            url_match = re.match('(\d+)-.*\.html$', path)
+            url_match = re.match('archives/(\d+)-.*\.html$', path)
             if url_match:
                 return db.Query(models.blog.Article). \
                     filter('legacy_id =', url_match.group(1)).get()

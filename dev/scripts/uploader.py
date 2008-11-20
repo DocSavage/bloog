@@ -81,7 +81,7 @@ drupal_uploader.py 'ACSID=AJXUWfE-aefkae...'
 
 Options:
 -D, --dbtype     = database type (default is 'mysql')
--t, --prefix     = table prefix (default is '')
+-t, --prefix     = table prefix, not supported by all blogtypes (default is '')
 -b, --blogtype   = type of blog to import from (default is 'drupal')
 -r, --root         sets authorization cookie for local dev admin
 -d, --dbhostname = hostname of MySQL server (default is 'localhost')
@@ -90,6 +90,8 @@ Options:
 -n, --dbname     = name of Drupal database name (default is 'drupal')
 -l, --url        = the url (web location) of the Bloog app
 -a, --articles   = only upload this many articles (for testing)
+-R, --static_redirect = generate redirects for static content by adding this
+                        prefix. Not supported by all blogtypes.
 """
 DB_ENCODING = 'latin-1'
 
@@ -222,12 +224,14 @@ class HttpRESTClient(object):
         return content
 
 class BlogConverter(object):
-    def __init__(self, auth_cookie, conn, app_url, table_prefix=''):
+    def __init__(self, auth_cookie, conn, app_url, table_prefix='',
+                 static_redirect=None):
         self.webserver = HttpRESTClient(auth_cookie)
         self.app_url = app_url
         self.table_prefix = table_prefix
         self.conn = conn
         self.cursor = self.conn.cursor()
+        self.static_redirect = static_redirect
     
     def close(self):
         self.cursor.close()
@@ -358,6 +362,18 @@ class SerendipityConverter(BlogConverter):
             for i in comments[data[1]]['children']:
                 stack.append((thread + (comments[i]['thread_id'],), 
                              comments[i]))
+    
+    def get_redirects(self):
+        if self.static_redirect:
+            self.cursor.execute("SELECT name, extension, thumbnail_name "
+                                "FROM %simages" % (self.table_prefix,))
+            rows = self.cursor.fetchall()
+            for row in rows:
+                path = "uploads/%s.%s" % row[0:2]
+                yield (path, self.static_redirect + path)
+                if row[2]:
+                  thumbpath = "uploads/%s.%s.%s" % (row[0], row[2], row[1])
+                  yield (thumbpath, self.static_redirect + thumbpath)
 
     def go(self, num_articles=None):
         self.cursor.execute("SELECT categoryid, parentid, category_name"
@@ -525,11 +541,12 @@ blog_types = {
 def main(argv):
     try:
         try:
-            opts, args = getopt.gnu_getopt(argv, 'hrd:p:u:n:l:a:vD:t:b:',
+            opts, args = getopt.gnu_getopt(argv, 'hrd:p:u:n:l:a:vD:t:b:R:',
                                            ["help", "root", "dbhostname=",
                                             "dbport=", "dbuserpwd=", "dbname=",
                                             "url=", "articles=", "dbtype=",
-                                            "prefix=", "blogtype="])
+                                            "prefix=", "blogtype=",
+                                            "static_redirect="])
         except getopt.error, msg:
             raise UsageError(msg)
 
@@ -538,11 +555,12 @@ def main(argv):
         table_prefix = ''
         dbhostname = 'localhost'
         dbport = None
-        dbname = 'drupal'
+        dbname = None
         dbuser = ''
         dbpasswd = ''
         app_url = 'http://localhost:8080'
         num_articles = None
+        static_redirect = None
         
         # option processing
         local_admin = None
@@ -555,10 +573,16 @@ def main(argv):
             if option in ("-r", "--root"):
                 local_admin = 'dev_appserver_login="root@example.com:True"'
             if option in ("-D", "--dbtype"):
+                if value not in db_types:
+                    print "-D, --dbtype must be one of %r" % db_types.keys()
+                    return 1
                 dbtype = value
             if option in ("-t", "--prefix"):
                 table_prefix = value
             if option in ("-b", "--blogtype"):
+                if value not in blog_types:
+                    print "-b, --blogtype must be one of %r" % blog_types.keys()
+                    return 1
                 blogtype = value
             if option in ("-d", "--dbhostname"):
                 dbhostname = value
@@ -584,6 +608,11 @@ def main(argv):
                     app_url = 'http://' + app_url
                 if app_url[-1] == '/':
                     app_url = app_url[:-1]
+            if option in ("-R", "--static_redirect"):
+                static_redirect = value
+        
+        if not dbname:
+            dbname = blogtype
 
         if len(args) < 2 and not local_admin:
             raise UsageError("Please specify the authentication cookie string"
@@ -601,7 +630,8 @@ def main(argv):
             converter = blog_types[blogtype](auth_cookie=auth_cookie,
                                              conn=conn,
                                              app_url=app_url,
-                                             table_prefix=table_prefix)
+                                             table_prefix=table_prefix,
+                                             static_redirect=static_redirect)
             converter.go(num_articles)
             converter.close()
     

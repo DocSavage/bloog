@@ -39,8 +39,9 @@ BLOG = {
     # define it here and insert the necessary mapping code in the
     # legacy_id_mapping() function in ArticleHandler (blog.py).
     # Currently only "Drupal" is supported.
-    "legacy_blog_software": None
-    #"legacy_blog_software": "Drupal"
+    "legacy_blog_software": None,
+    #"legacy_blog_software": "Drupal",
+    #"legacy_blog_software": "Serendipity",
 }
 
 PAGE = {
