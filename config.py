@@ -42,6 +42,11 @@ BLOG = {
     "legacy_blog_software": None,
     #"legacy_blog_software": "Drupal",
     #"legacy_blog_software": "Serendipity",
+    
+    # If you want imported legacy entries _not_ mapped in the file above to
+    # redirect to their new permanent URL rather than responding on their
+    # old URL, set this flag to True.
+    "legacy_entry_redirect": False,
 }
 
 PAGE = {

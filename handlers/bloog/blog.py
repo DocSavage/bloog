@@ -383,6 +383,9 @@ class ArticleHandler(restful.Controller):
             #  to article properties, e.g. 3 -> legacy_id property
             article = legacy_id_mapping(path,
                                         config.BLOG["legacy_blog_software"])
+            if article and config.BLOG["legacy_entry_redirect"]:
+                self.redirect('/' + article.permalink)
+                return
         render_article(self, article)
 
     @restful.methods_via_query_allowed    
