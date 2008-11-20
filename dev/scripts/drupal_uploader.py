@@ -237,6 +237,7 @@ class BlogConverter(object):
         # Get all articles
         self.redirect = {}    # Keys are legacy IDs and maps to permalink
 
+        article_count = 0
         for article in self.get_articles():
             article = self.get_article_tags(article)
 
@@ -253,9 +254,13 @@ class BlogConverter(object):
 
             comment_posting_url = self.app_url + entry_permalink
             for comment in self.get_article_comments(article):
-                print "Posting comment '" + row[0] + "' to", \
-                      comment_posting_url
+                print ("Posting comment '%s' to %s"
+                       % (comment['title'], comment_posting_url))
                 self.webserver.post(comment_posting_url, comment)
+
+            article_count += 1
+            if num_articles and article_count >= num_articles:
+                break
 
         # create_python_routing from url_alias table
         f = open('legacy_aliases.py', 'w')
@@ -272,15 +277,15 @@ class BlogConverter(object):
     
     def get_article_tags(self, article):
         """Annotates an article with tags."""
-        return
-    
+        return article
+
     def get_article_comments(self, article):
         """Returns an iterable of comments associated with an article."""
-        return
+        return []
 
     def get_redirects(self):
         """Returns an iterable of (src, dest) redirect tuples."""
-        return
+        return []
 
 
 class SerendipityConverter(BlogConverter):
@@ -294,7 +299,7 @@ class SerendipityConverter(BlogConverter):
             article['legacy_id'] = row[0]
             article['title'] = force_singleline(row[1])
             article['format'] = None
-            article['body'] = row[4]
+            article['body'] = re.sub('\n', '<br />', row[4])
             article['html'] = article['body']
             article['format'] = 'html'
             published = datetime.datetime.fromtimestamp(row[2])
@@ -303,8 +308,6 @@ class SerendipityConverter(BlogConverter):
             article['updated'] = str(last_modified)
             article['post_url'] = '/%s/%s/' % (published.year, published.month)
             yield article
-            if num_articles and len(articles) >= num_articles:
-                break
     
     def get_article_tags(self, article):
         article_tags = set()
@@ -317,37 +320,44 @@ class SerendipityConverter(BlogConverter):
             while tag:
               article_tags.add(tag['name'])
               tag = self.tags.get(tag['parent'], None)
-        article['tags'] = ','.join(tag_names)
+        article['tags'] = ','.join(article_tags)
+        return article
 
     def get_article_comments(self, article):
         self.cursor.execute("SELECT entry_id, id, parent_id, title, body, "
                             "timestamp, author, email, url FROM %scomments "
-                            "WHERE entry_id = %s ORDER BY entry_id, parent_id"
+                            "WHERE entry_id = %s ORDER BY entry_id,parent_id,id"
                             % (self.table_prefix, article['legacy_id']))
         rows = self.cursor.fetchall()
-        current_entry_id = None
-        comments = {'0': { 'children': []}}
+        comments = {0: { 'children': []}}
+        thread_id_ctr = 0
         for row in rows:
-            if current_entry_id != row[0]:
-                current_entry_id = row[0]
-                stack = [((x[1],), x) for x in comments['0']['children']]
-                while stack:
-                    thread, entry = stack.pop()
-                    yield {
-                        'title': entry[3],
-                        'body': entry[4],
-                        'published': str(datetime.datetime.fromtimestamp(row[5])),
-                        'thread': '.'.join('%03d' % x for x in thread),
-                        'name': entry[6],
-                        'email': entry[7],
-                        'homepage': entry[8],
-                    }
-                    stack.extend((thread + (entry[1],), x)
-                                 for x in comments[entry[1]])
-            comments[row[1]] = {'data': row, 'children': []}
-            if row[2] > 0:
-                comments[row[2]]['children'].append(row)
-            
+            comments[row[1]] = {
+                'data': row,
+                'children': [],
+                'thread_id': thread_id_ctr
+            }
+            comments[row[2]]['children'].append(row[1])
+            thread_id_ctr += 1
+
+        stack = []
+        for i in comments[0]['children']:
+            stack.append(((comments[i]['thread_id'],), comments[i]))
+        while stack:
+            thread, entry = stack.pop()
+            data = entry['data']
+            yield {
+                'title': data[3],
+                'body': re.sub('\n', '<br />', data[4]),
+                'published': str(datetime.datetime.fromtimestamp(data[5])),
+                'thread': '.'.join('%03d' % x for x in thread),
+                'name': data[6],
+                'email': data[7],
+                'homepage': data[8],
+            }
+            for i in comments[data[1]]['children']:
+                stack.append((thread + (comments[i]['thread_id'],), 
+                             comments[i]))
 
     def go(self, num_articles=None):
         self.cursor.execute("SELECT categoryid, parentid, category_name"
@@ -361,7 +371,7 @@ class SerendipityConverter(BlogConverter):
                 'name': row[2],
             }
 
-        super(DrupalConverter, self).go(num_articles)
+        super(SerendipityConverter, self).go(num_articles)
 
 
 class DrupalConverter(BlogConverter):
@@ -438,8 +448,6 @@ class DrupalConverter(BlogConverter):
                     else:
                         article['post_url'] = '/'
                     yield article
-                    if num_articles and len(articles) >= num_articles:
-                        break
                 else:
                     print "Rejected article with title (", \
                           article['title'], ") because bad format."
