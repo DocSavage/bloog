@@ -58,7 +58,7 @@ ROUTES = [
 
 def main():
     path = timings.start_run()
-    application = webapp.WSGIApplication(ROUTES, debug=True)
+    application = webapp.WSGIApplication(ROUTES, debug=config.DEBUG)
     wsgiref.handlers.CGIHandler().run(application)
     timings.stop_run(path)
 
