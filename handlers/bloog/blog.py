@@ -50,6 +50,7 @@ from google.appengine.ext import webapp
 from google.appengine.api import users
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
+from google.appengine.api import mail
 
 from handlers import restful
 from utils import authorized
@@ -274,6 +275,13 @@ def process_comment_submission(handler, article):
         logging.debug("Bad comment: %s", property_hash)
         handler.error(400)
         return
+        
+    # Notify the author of a new comment (from matteocrippa.it)
+    mail.send_mail(sender=config.BLOG['email'],
+                   to="%s <%s>" % (config.BLOG['author'], config.BLOG['email'],),
+                   subject="New comment by %s" % (comment.name,),
+                   body="A new comment has just been posted on %s/%s by %s."
+                     % (config.BLOG['root_url'], article.permalink, comment.name))
 
     # Render just this comment and send it to client
     response = template.render(
