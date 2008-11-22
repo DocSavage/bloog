@@ -3,6 +3,7 @@
 {% if article.embedded_code %}
 {% block head %}
 <link type="text/css" rel="stylesheet" href="/static/syntaxhighlighter/SyntaxHighlighter.css"></link>
+<meta name="description" content="{{article.html|description}}" />
 {% endblock %}
 {% endif %}
 
