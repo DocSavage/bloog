@@ -277,11 +277,14 @@ def process_comment_submission(handler, article):
         return
         
     # Notify the author of a new comment (from matteocrippa.it)
-    mail.send_mail(sender=config.BLOG['email'],
-                   to="%s <%s>" % (config.BLOG['author'], config.BLOG['email'],),
-                   subject="New comment by %s" % (comment.name,),
-                   body="A new comment has just been posted on %s/%s by %s."
-                     % (config.BLOG['root_url'], article.permalink, comment.name))
+    if config.BLOG['send_comment_notification']:
+        recipient = "%s <%s>" % (config.BLOG['author'], config.BLOG['email'],)
+        body = ("A new comment has just been posted on %s/%s by %s."
+                % (config.BLOG['root_url'], article.permalink, comment.name))
+        mail.send_mail(sender=config.BLOG['email'],
+                       to=recipient,
+                       subject="New comment by %s" % (comment.name,),
+                       body=body)
 
     # Render just this comment and send it to client
     response = template.render(
@@ -320,7 +323,9 @@ def render_article(handler, article):
                                    "allow_comments": allow_comments,
                                    "article": article,
                                    "captcha1": captcha[:3],
-                                   "captcha2": captcha[3:6] })
+                                   "captcha2": captcha[3:6],
+                                   "use_gravatars": config.BLOG['use_gravatars']
+            })
     else:
         # This didn't fall into any of our pages or aliases.
         # Page not found.

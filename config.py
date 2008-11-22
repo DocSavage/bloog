@@ -35,6 +35,9 @@ BLOG = {
     #  use of template files in /views will go to directory by that name.
     "theme": "default",
     
+    # Display gravatars alongside user comments?
+    "use_gravatars": True,
+    
     # Do you want to be emailed when new comments are posted?
     "send_comment_notification": True,
 
