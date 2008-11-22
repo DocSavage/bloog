@@ -51,6 +51,7 @@ from google.appengine.api import users
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.api import mail
+from google.appengine.api import urlfetch
 
 from handlers import restful
 from utils import authorized
@@ -138,7 +139,13 @@ def get_sanitizer_func(handler, **kwargs):
     logging.debug("Content-type: %s", handler.request.headers['CONTENT_TYPE'])
     logging.debug("In sanitizer: %s", kwlist)
     return lambda html : sanitizer.sanitize_html(html, **kwlist)
-        
+
+def do_sitemap_ping():
+    form_fields = { "sitemap": "%s/sitemap.xml" % (config.BLOG['root_url'],) }
+    urlfetch.fetch(url="http://www.google.com/webmasters/tools/ping",
+                   payload=urllib.urlencode(form_fields),
+                   method=urlfetch.GET)
+
 def process_embedded_code(article):
     # TODO -- Check for embedded code, escape opening triangular brackets
     # within code, and set article embedded_code strings so we can
@@ -207,6 +214,7 @@ def process_article_submission(handler, article_type):
         article.put()
         for key in article.tag_keys:
             db.get(key).counter.increment()
+        do_sitemap_ping()
         restful.send_successful_response(handler, '/' + article.permalink)
         view.invalidate_cache()
     else:
@@ -568,3 +576,16 @@ class AtomHandler(webapp.RequestHandler):
         page = view.ViewPage()
         page.render(self, {"blog_updated_timestamp": updated, 
                            "articles": articles, "ext": "xml"})
+
+class SitemapHandler(webapp.RequestHandler):
+	def get(self):
+		logging.debug("Sending Sitemap")
+		articles = db.Query(models.blog.Article).order('-published').fetch(1000)
+		if articles:
+			self.response.headers['Content-Type'] = 'text/xml'
+			page = view.ViewPage()
+			page.render(self, {
+          "articles": articles,
+          "ext": "xml",
+          "root_url": config.BLOG['root_url']
+      })
