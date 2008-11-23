@@ -49,10 +49,6 @@ def to_filename(camelcase_handler_str):
             filename += ch
     return filename
 
-HANDLER_PATTERN = re.compile(r"<class 'handlers\."
-                             r"(?P<handler_path>.*)"
-                             r"(?=Handler'>)")
-
 def get_view_file(handler, params={}):
     """
     Looks for presence of template files with priority given to 
@@ -76,20 +72,17 @@ def get_view_file(handler, params={}):
         desired_ext = 'html'
 
     verb = handler.request.method.lower()
-    class_name = str(handler.__class__)
-    nmatch = re.match(HANDLER_PATTERN, class_name)
-    if nmatch:
-        handler_path = nmatch.group('handler_path').split('.')
+    app_name = ''
+    module_name = None
+    handler_name = None
+    cls = handler.__class__
+    if (cls.__module__.startswith('handlers.')
+        and cls.__name__.endswith('Handler')):
+        handler_path = cls.__module__.split('.')
         if len(handler_path) == 3:
-            app_name = to_filename(handler_path[0])
-        else:
-            app_name = ''
-        module_name = to_filename(handler_path[-2])
-        handler_name = to_filename(handler_path[-1])
-    else:
-        app_name = ''
-        module_name = None
-        handler_name = None
+            app_name = to_filename(handler_path[1])
+        module_name = to_filename(handler_path[-1])
+        handler_name = to_filename(cls.__name__.partition('Handler')[0])
 
     if 'app_name' in params:
         app_name = params['app_name']
