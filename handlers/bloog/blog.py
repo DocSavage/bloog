@@ -304,7 +304,8 @@ def process_comment_submission(handler, article):
     view_path = view.find_file(view.templates, "bloog/blog/comment.html")
     response = template.render(
         os.path.join("views", view_path),
-        { 'comment': comment }, debug=config.DEBUG)
+        { 'comment': comment, "use_gravatars": config.BLOG["use_gravatars"] },
+        debug=config.DEBUG)
     handler.response.out.write(response)
     view.invalidate_cache()
 
