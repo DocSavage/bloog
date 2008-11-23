@@ -147,7 +147,7 @@ h3#respond{color:#555;margin-bottom:7px;}
 .comment_text ul,
 .comment_text ol,
 .comment_text blockquote{margin:0 1em;}
-p.comment_meta .gravatar{vertical-align:top;margin-left:7px;}
+p.comment_meta .gravatar{vertical-align:top;margin-left:7px;width:32px;height:32px;}
 p.comment_meta span.subject{font-weight:bold;text-transform:uppercase;margin:0 0 0 7px;}
 p.comment_meta span.user{font-weight:bold;}
 p.comment_meta span.date{font-weight:normal;text-align:right;}
