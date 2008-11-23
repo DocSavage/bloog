@@ -1,0 +1,19 @@
+<urlset>
+   xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+      http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<url>
+	<loc>{{root_url}}/</loc>
+	<priority>1.00</priority>
+	<changefreq>daily</changefreq>
+</url>
+{% for article in articles %}
+<url>
+	<loc>{{article.full_permalink}}</loc>
+	<priority>0.80</priority>
+	<lastmod>{{article.rfc3339_published}}</lastmod>
+	<changefreq>monthly</changefreq>
+</url>
+{% endfor %}
+</urlset>

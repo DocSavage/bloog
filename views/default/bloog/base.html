@@ -100,8 +100,10 @@
                         <p class="tags">
                         {% if blog_tags %}
                             {% for tag in blog_tags %}
-                            <a href="/tag/{{ tag.name|urlencode }}">{{ tag.name }}</a>
-                            ({{ tag.count }})<br />
+                                {% ifnotequal tag.count 0 %}
+                                <a href="/tag/{{ tag.name|urlencode }}">{{ tag.name }}</a>
+                                ({{ tag.count }})<br />
+                                {% endifnotequal %}
                             {% endfor %}
                         {% else %}
                             No posts have been tagged yet.

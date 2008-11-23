@@ -36,6 +36,10 @@ import config
 # Force sys.path to have our own directory first, so we can import from it.
 sys.path.insert(0, config.APP_ROOT_DIR)
 
+# Import custom django libraries
+webapp.template.register_template_library('utils.django_libs.gravatar')
+webapp.template.register_template_library('utils.django_libs.description')
+
 # Log a message each time this module get loaded.
 logging.info('Loading %s, app version = %s',
              __name__, os.getenv('CURRENT_VERSION_ID'))
@@ -54,6 +58,7 @@ ROUTES = [
     ('/tag/(.*)', blog.TagHandler),
     (config.BLOG['master_atom_url'] + '/*$', blog.AtomHandler),
     ('/articles', blog.ArticlesHandler),
+    ('/sitemap.xml', blog.SitemapHandler),
     ('/(.*)', blog.ArticleHandler)]
 
 def main():

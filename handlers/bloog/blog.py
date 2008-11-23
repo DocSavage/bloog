@@ -50,6 +50,8 @@ from google.appengine.ext import webapp
 from google.appengine.api import users
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
+from google.appengine.api import mail
+from google.appengine.api import urlfetch
 
 from handlers import restful
 from utils import authorized
@@ -143,7 +145,13 @@ def get_sanitizer_func(handler, **kwargs):
     logging.debug("Content-type: %s", handler.request.headers['CONTENT_TYPE'])
     logging.debug("In sanitizer: %s", kwlist)
     return lambda html : sanitizer.sanitize_html(html, **kwlist)
-        
+
+def do_sitemap_ping():
+    form_fields = { "sitemap": "%s/sitemap.xml" % (config.BLOG['root_url'],) }
+    urlfetch.fetch(url="http://www.google.com/webmasters/tools/ping",
+                   payload=urllib.urlencode(form_fields),
+                   method=urlfetch.GET)
+
 def process_embedded_code(article):
     # TODO -- Check for embedded code, escape opening triangular brackets
     # within code, and set article embedded_code strings so we can
@@ -212,6 +220,7 @@ def process_article_submission(handler, article_type):
         article.put()
         for key in article.tag_keys:
             db.get(key).counter.increment()
+        do_sitemap_ping()
         restful.send_successful_response(handler, '/' + article.permalink)
         view.invalidate_cache()
     else:
@@ -280,6 +289,16 @@ def process_comment_submission(handler, article):
         logging.debug("Bad comment: %s", property_hash)
         handler.error(400)
         return
+        
+    # Notify the author of a new comment (from matteocrippa.it)
+    if config.BLOG['send_comment_notification']:
+        recipient = "%s <%s>" % (config.BLOG['author'], config.BLOG['email'],)
+        body = ("A new comment has just been posted on %s/%s by %s."
+                % (config.BLOG['root_url'], article.permalink, comment.name))
+        mail.send_mail(sender=config.BLOG['email'],
+                       to=recipient,
+                       subject="New comment by %s" % (comment.name,),
+                       body=body)
 
     # Render just this comment and send it to client
     response = template.render(
@@ -318,7 +337,9 @@ def render_article(handler, article):
                                    "allow_comments": allow_comments,
                                    "article": article,
                                    "captcha1": captcha[:3],
-                                   "captcha2": captcha[3:6] })
+                                   "captcha2": captcha[3:6],
+                                   "use_gravatars": config.BLOG['use_gravatars']
+            })
     else:
         # This didn't fall into any of our pages or aliases.
         # Page not found.
@@ -565,3 +586,16 @@ class AtomHandler(webapp.RequestHandler):
         page = view.ViewPage()
         page.render(self, {"blog_updated_timestamp": updated, 
                            "articles": articles, "ext": "xml"})
+
+class SitemapHandler(webapp.RequestHandler):
+	def get(self):
+		logging.debug("Sending Sitemap")
+		articles = db.Query(models.blog.Article).order('-published').fetch(1000)
+		if articles:
+			self.response.headers['Content-Type'] = 'text/xml'
+			page = view.ViewPage()
+			page.render(self, {
+          "articles": articles,
+          "ext": "xml",
+          "root_url": config.BLOG['root_url']
+      })
