@@ -39,6 +39,7 @@ sys.path.insert(0, config.APP_ROOT_DIR)
 # Import custom django libraries
 webapp.template.register_template_library('utils.django_libs.gravatar')
 webapp.template.register_template_library('utils.django_libs.description')
+webapp.template.register_template_library('utils.django_libs.find_static')
 
 # Log a message each time this module get loaded.
 logging.info('Loading %s, app version = %s',

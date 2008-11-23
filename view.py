@@ -37,6 +37,32 @@ import config
 
 NUM_FULL_RENDERS = {}       # Cached data for some timings.
 
+def do_build_tree(base, path, tree):
+    for entry in os.listdir(os.path.join(base, path)):
+        entry_path = os.path.join(path, entry)
+        if os.path.isdir(os.path.join(base, entry_path)):
+            do_build_tree(base, entry_path, tree.setdefault(entry, {}))
+        elif entry not in tree:
+            tree[entry] = entry_path
+
+def build_tree(base):
+    tree = {}
+    basedir = os.path.join(config.APP_ROOT_DIR, base)
+    for theme in config.BLOG['theme']:
+        do_build_tree(basedir, theme, tree)
+    return tree
+templates = build_tree('views')
+staticfiles = build_tree('static')
+
+def find_file(tree, path):
+    cur = tree
+    for element in path.split('/'):
+        cur = cur.get(element, {})
+    if cur:
+        return cur
+    else:
+        return None
+
 def invalidate_cache():
     memcache.flush_all()
 
@@ -93,36 +119,37 @@ def get_view_file(handler, params={}):
 
     # Get template directory hierarchy -- Needed if we inherit from templates
     # in directories above us (due to sharing with other templates).
-    
-    root_folder = os.path.join(
-        config.APP_ROOT_DIR, 
-        'views', config.BLOG['theme'])
-    template_dirs = ()
-    if module_name:
-        template_dirs += (os.path.join(root_folder, app_name, module_name),)
-    if app_name:
-        template_dirs += (os.path.join(root_folder, app_name),)
-    template_dirs += (root_folder,)
+    themes = config.BLOG['theme']
+    if isinstance(themes, basestring):
+      themes = [themes]
+    template_dirs = []
+    views_dir = os.path.join(config.APP_ROOT_DIR, 'views')
+    for theme in themes:
+      root_folder = os.path.join(views_dir, theme)
+      if module_name:
+          template_dirs += (os.path.join(root_folder, app_name, module_name),)
+      if app_name:
+          template_dirs += (os.path.join(root_folder, app_name),)
+      template_dirs += (root_folder,)
         
     # Now check possible extensions for the given template file.
     if module_name and handler_name:
-        filename_prefix = os.path.join(root_folder, app_name, module_name, handler_name)
+        entries = templates.get(app_name, {}).get(module_name, {})
         possible_roles = []
         if users.is_current_user_admin():
             possible_roles.append('.admin.')
         if users.get_current_user():
             possible_roles.append('.user.')
         possible_roles.append('.')
-        # Check possible template file names in order of decreasing priority
         for role in possible_roles:
-            filename = filename_prefix + role + verb + '.' + desired_ext
-            if os.path.exists(filename):
+            filename = ''.join([handler_name, role, verb, '.', desired_ext])
+            if filename in entries:
                 return {'file': filename, 'dirs': template_dirs}
         for role in possible_roles:
-            filename = filename_prefix + role + desired_ext
-            if os.path.exists(filename):
+            filename = ''.join([handler_name, role, desired_ext])
+            if filename in entries:
                 return {'file': filename, 'dirs': template_dirs}
-    return {'file': root_folder + '/notfound.html', 'dirs': template_dirs}
+    return {'file': 'notfound.html', 'dirs': template_dirs}
 
 class ViewPage(object):
     def __init__(self, cache_time=None):

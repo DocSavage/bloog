@@ -301,8 +301,9 @@ def process_comment_submission(handler, article):
                        body=body)
 
     # Render just this comment and send it to client
+    view_path = view.find_file(view.templates, "bloog/blog/comment.html")
     response = template.render(
-        "views/%s/bloog/blog/comment.html" % config.BLOG['theme'], 
+        os.path.join("views", view_path),
         { 'comment': comment }, debug=config.DEBUG)
     handler.response.out.write(response)
     view.invalidate_cache()

@@ -43,6 +43,7 @@ http://www.djangoproject.com/documentation/templates/
 """
 
 
+import logging
 import os
 
 try:
@@ -98,11 +99,14 @@ def load(path, debug=False, template_dirs=()):
 
   if not template:
     directory, file_name = os.path.split(abspath)
+    if directory:
+      template_dirs = [directory] + template_dirs
+    logging.warn(template_dirs, file_name)
     new_settings = {
-        'TEMPLATE_DIRS': (directory,) + template_dirs,
+        'TEMPLATE_DIRS': template_dirs,
         'TEMPLATE_DEBUG': debug,
         'DEBUG': debug,
-        }
+    }
     old_settings = _swap_settings(new_settings)
     try:
       template = django.template.loader.get_template(file_name)

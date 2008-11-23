@@ -37,8 +37,8 @@ p span.displaynone { display:none; }
 {% if not user_is_admin %}
 <!-- Load scripts if not already loaded due to admin interface -->
 <script type="text/javascript" src="http://yui.yahooapis.com/combo?2.5.2/build/yahoo-dom-event/yahoo-dom-event.js&2.5.2/build/animation/animation-min.js&2.5.2/build/connection/connection-min.js&2.5.2/build/container/container-min.js&2.5.2/build/menu/menu-min.js&2.5.2/build/element/element-beta-min.js&2.5.2/build/button/button-min.js&2.5.2/build/editor/editor-beta-min.js&2.5.2/build/selector/selector-beta-min.js"></script>
-<script type="text/javascript" src="/static/default/js/ojay/js-class.js"></script>
-<script type="text/javascript" src="/static/default/js/ojay/core.js"></script>
+<script type="text/javascript" src="{{"js/ojay/js-class.js"|find_static_file}}"></script>
+<script type="text/javascript" src="{{"js/ojay/core.js"|find_static_file}}"></script>
 {% endif %}
-<script type="text/javascript" src="/static/default/js/bloog_comments.js"></script>
+<script type="text/javascript" src="{{"js/bloog_comments.js"|find_static_file}}"></script>
 

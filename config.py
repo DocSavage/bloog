@@ -33,7 +33,7 @@ BLOG = {
     # Use the default YUI-based theme.
     # If another string is used besides 'default', calls to static files and
     #  use of template files in /views will go to directory by that name.
-    "theme": "default",
+    "theme": ["default"],
     
     # Display gravatars alongside user comments?
     "use_gravatars": True,
