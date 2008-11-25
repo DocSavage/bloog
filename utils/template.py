@@ -101,7 +101,6 @@ def load(path, debug=False, template_dirs=()):
     directory, file_name = os.path.split(abspath)
     if directory:
       template_dirs = [directory] + template_dirs
-    logging.warn(template_dirs, file_name)
     new_settings = {
         'TEMPLATE_DIRS': template_dirs,
         'TEMPLATE_DEBUG': debug,

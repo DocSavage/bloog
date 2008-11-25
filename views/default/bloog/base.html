@@ -4,7 +4,7 @@
         <meta http-equiv="Content-Type" content="{{ blog.html_type }}; charset={{ blog.charset }}" />
         <title> {{ title }}</title>
         <meta name="generator" content="Bloog {{ bloog_version }}" />
-        <link rel="stylesheet" href="{{"style.css"|find_static_file}}" type="text/css" media="screen" />
+        <link rel="stylesheet" href="/static/default/style.css" type="text/css" media="screen" />
         <link rel="alternate" type="application/rss+xml" title="{{ blog.title }} RSS Feed" 
               href="{{ blog.root_url }}{{ blog.master_atom_url }}" />
         <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.5.2/build/assets/skins/sam/skin.css" />
@@ -18,7 +18,7 @@
             <div id="masthead" class="fix">
                 <h1><a href="/">{{ blog.title }}</a></h1>
                 <div id="authorBlurb">
-                    <img src="{{"images/avatar.png"|find_static_file}}" alt="Avatar" />
+                    <img src="/static/default/images/avatar.png" alt="Avatar" />
                     <p id="authorIntro">
                         {{ blog.description }}
                     </p>
@@ -89,7 +89,7 @@
                     <div id="searchWrap">
                         <form method="get" id="searchForm" action="/search">
                             <input type="text" value="{{ searchterm }}" name="s" id="s" />
-                            <input id="searchsubmit" type="image" src="{{"images/btn_search.gif"|find_static_file}}" alt="Search" />
+                            <input id="searchsubmit" type="image" src="/static/default/images/btn_search.gif" alt="Search" />
                         </form>
                     </div>
                     {% endblock %}
@@ -254,7 +254,7 @@
         </div>
 
         <script type="text/javascript" src="http://yui.yahooapis.com/2.5.2/build/yahoo-dom-event/yahoo-dom-event.js"></script>
-        <script type="text/javascript" src="{{"js/bloog_base.js"|find_static_file}}"></script>
+        <script type="text/javascript" src="/static/default/js/bloog_base.js"></script>
 
         {% if user_is_admin %}
         {% include "form_editor.html" %}

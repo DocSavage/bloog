@@ -52,7 +52,6 @@ def build_tree(base):
         do_build_tree(basedir, theme, tree)
     return tree
 templates = build_tree('views')
-staticfiles = build_tree('static')
 
 def find_file(tree, path):
     cur = tree
