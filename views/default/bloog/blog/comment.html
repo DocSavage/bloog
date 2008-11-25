@@ -1,7 +1,7 @@
 <li id="comment-{{ comment.key }}" class="alt item indent{{ comment.get_indentation }}">
     <div class="fix">
         <p class="comment_meta">
-            {% if use_gravatars %}
+            {% if use_gravatars and comment.email %}
             <img class="gravatar" src="http://www.gravatar.com/avatar/{{comment.email|gravatar}}?s=32&r=g&d=identicon" alt="" />
             {% endif %}
             <span class="subject">{{ comment.title|default:"Re: Article"}}</span> by 
