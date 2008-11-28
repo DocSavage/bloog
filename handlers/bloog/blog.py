@@ -243,9 +243,9 @@ def process_comment_submission(handler, article):
 
     # If we aren't administrator, abort if bad captcha
     if not users.is_current_user_admin():
-        if property_hash['captcha'] != get_captcha(article.key()):
+        if property_hash.get('captcha', None) != get_captcha(article.key()):
             logging.info("Received captcha (%s) != %s", 
-                          property_hash['captcha'], 
+                          property_hash.get('captcha', None),
                           get_captcha(article.key()))
             handler.error(401)      # Unauthorized
             return
